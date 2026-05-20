@@ -31,7 +31,7 @@ type ScreenState = 'landing' | 'active' | 'review';
 type CapturingState = 'idle' | 'countdown' | 'capturing' | 'completed';
 
 export default function Photobooth() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
 
   // App Navigation Flow
   const [screen, setScreen] = useState<ScreenState>('landing');
@@ -58,21 +58,27 @@ export default function Photobooth() {
   const activeTheme = CARD_THEMES[activeThemeId];
   const currentFilter = VISUAL_FILTERS[activeFilterId];
 
-  // Initialize and keep Camera alive or stop based on navigation screen
+  // Initialize and keep Camera alive or stop based on navigation screen and video element mount
   useEffect(() => {
     let stream: MediaStream | null = null;
+    let active = true;
 
     async function setupCamera() {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
           audio: false,
         });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          // Wait slightly for srcObject connection
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play();
+        if (!active) {
+          mediaStream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        stream = mediaStream;
+        if (videoElement) {
+          videoElement.srcObject = stream;
+          videoElement.onloadedmetadata = () => {
+            if (!active) return;
+            videoElement.play();
             setIsCameraReady(true);
           };
         }
@@ -82,28 +88,29 @@ export default function Photobooth() {
       }
     }
 
-    if (screen === 'active') {
+    if (screen === 'active' && videoElement) {
       setupCamera();
-    } else {
+    } else if (screen !== 'active') {
       // Cleanup camera streams in landing or review states to release device hooks
-      if (videoRef.current?.srcObject) {
-        const streamSrc = videoRef.current.srcObject as MediaStream;
+      if (videoElement?.srcObject) {
+        const streamSrc = videoElement.srcObject as MediaStream;
         streamSrc.getTracks().forEach((track) => track.stop());
-        videoRef.current.srcObject = null;
+        videoElement.srcObject = null;
         setIsCameraReady(false);
       }
     }
 
     return () => {
+      active = false;
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [screen]);
+  }, [screen, videoElement]);
 
   // Handle single slice static burst capture
   const captureFrame = useCallback((): HTMLCanvasElement => {
-    const video = videoRef.current;
+    const video = videoElement;
     if (!video) return document.createElement('canvas');
 
     const canvas = document.createElement('canvas');
@@ -117,7 +124,7 @@ export default function Photobooth() {
       ctx.drawImage(video, 0, 0);
     }
     return canvas;
-  }, []);
+  }, [videoElement]);
 
   // Run full photo session loop
   const runSession = async () => {
@@ -491,7 +498,7 @@ export default function Photobooth() {
               {/* Stream Video Wrapper with applied selected LIVE FILTER style */}
               <div className="relative w-full max-w-4xl aspect-[4/3] bg-[#111] overflow-hidden border border-[#222] shadow-3xl z-10">
                 <video
-                  ref={videoRef}
+                  ref={setVideoElement}
                   muted
                   playsInline
                   style={{ filter: currentFilter.style }}
