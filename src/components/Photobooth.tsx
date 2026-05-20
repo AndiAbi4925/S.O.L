@@ -1,29 +1,29 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { 
-  Camera, 
-  Download, 
-  RefreshCw, 
-  Settings2, 
-  Sparkles, 
-  Clock, 
-  Heart, 
-  ArrowLeft, 
-  Maximize2, 
-  Film, 
-  Eye, 
+import {
+  Camera,
+  Download,
+  RefreshCw,
+  Settings2,
+  Sparkles,
+  Clock,
+  Heart,
+  ArrowLeft,
+  Maximize2,
+  Film,
+  Eye,
   Smile,
   ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
-import { 
-  LAYOUTS, 
-  LayoutDef, 
-  CARD_THEMES, 
-  CardTheme, 
-  VISUAL_FILTERS, 
-  FilterType, 
-  renderStrip 
+import {
+  LAYOUTS,
+  LayoutDef,
+  CARD_THEMES,
+  CardTheme,
+  VISUAL_FILTERS,
+  FilterType,
+  renderStrip
 } from '../lib/renderUtils';
 import { createGifExporter } from '../lib/exportUtils';
 
@@ -32,10 +32,10 @@ type CapturingState = 'idle' | 'countdown' | 'capturing' | 'completed';
 
 export default function Photobooth() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  
+
   // App Navigation Flow
   const [screen, setScreen] = useState<ScreenState>('landing');
-  
+
   // Custom Settings State
   const [activeLayoutId, setActiveLayoutId] = useState<string>('1x4');
   const [activeThemeId, setActiveThemeId] = useState<string>('alabaster');
@@ -43,7 +43,7 @@ export default function Photobooth() {
   const [grainIntensity, setGrainIntensity] = useState<number>(30);
   const [showDate, setShowDate] = useState<boolean>(true);
   const [photoDelay, setPhotoDelay] = useState<number>(3); // custom delay in seconds
-  
+
   // Camera & Capture Session State
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [captureState, setCaptureState] = useState<CapturingState>('idle');
@@ -61,7 +61,7 @@ export default function Photobooth() {
   // Initialize and keep Camera alive or stop based on navigation screen
   useEffect(() => {
     let stream: MediaStream | null = null;
-    
+
     async function setupCamera() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -155,12 +155,12 @@ export default function Photobooth() {
   useEffect(() => {
     if (screen === 'review' && capturedPhotos.length > 0) {
       const cvs = renderStrip(
-        capturedPhotos, 
-        activeLayout, 
-        grainIntensity, 
-        showDate, 
-        selectedPhotoIndex, 
-        activeThemeId, 
+        capturedPhotos,
+        activeLayout,
+        grainIntensity,
+        showDate,
+        selectedPhotoIndex,
+        activeThemeId,
         activeFilterId
       );
       setPreviewCanvasDataUrl(cvs.toDataURL('image/jpeg', 0.95));
@@ -178,12 +178,12 @@ export default function Photobooth() {
 
       if (format === 'jpg' || format === 'png') {
         const cvs = renderStrip(
-          capturedPhotos, 
-          activeLayout, 
-          grainIntensity, 
-          showDate, 
-          selectedPhotoIndex, 
-          activeThemeId, 
+          capturedPhotos,
+          activeLayout,
+          grainIntensity,
+          showDate,
+          selectedPhotoIndex,
+          activeThemeId,
           activeFilterId
         );
         const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
@@ -195,28 +195,28 @@ export default function Photobooth() {
         for (let i = 0; i < 5; i++) {
           frames.push(
             renderStrip(
-              capturedPhotos, 
-              activeLayout, 
-              grainIntensity, 
-              showDate, 
-              i, 
-              activeThemeId, 
+              capturedPhotos,
+              activeLayout,
+              grainIntensity,
+              showDate,
+              i,
+              activeThemeId,
               activeFilterId
             )
           );
         }
-        
+
         // Downscale GIF dimensions (approx 0.5) to keep export performance instantaneous and light files
         const scale = 0.55;
         const gifFrames = frames.map(f => {
-           const c = document.createElement('canvas');
-           c.width = f.width * scale;
-           c.height = f.height * scale;
-           const gc = c.getContext('2d');
-           if (gc) {
-             gc.drawImage(f, 0, 0, c.width, c.height);
-           }
-           return c;
+          const c = document.createElement('canvas');
+          c.width = f.width * scale;
+          c.height = f.height * scale;
+          const gc = c.getContext('2d');
+          if (gc) {
+            gc.drawImage(f, 0, 0, c.width, c.height);
+          }
+          return c;
         });
 
         const blob = await createGifExporter(gifFrames, gifFrames[0].width, gifFrames[0].height, 8);
@@ -253,16 +253,16 @@ export default function Photobooth() {
 
   return (
     <div className="min-h-screen bg-[#080808] text-[#e0e0e0] font-sans flex flex-col items-center justify-center select-none relative overflow-x-hidden md:p-4">
-      
+
       {/* Background Ambience Light Glows */}
       <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-red-900/10 rounded-full blur-[140px] pointer-events-none -translate-x-1/2 -translate-y-1/2 z-0" />
       <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#dfccd5]/5 rounded-full blur-[120px] pointer-events-none translate-x-1/2 translate-y-1/2 z-0" />
 
       <AnimatePresence mode="wait">
-        
+
         {/* SCREEN 1: LANDING / OPENING PAGE */}
         {screen === 'landing' && (
-          <motion.div 
+          <motion.div
             key="landing"
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -315,14 +315,14 @@ export default function Photobooth() {
             <div className="w-full md:w-80 shrink-0 flex items-center justify-center">
               <div className="relative transform rotate-2 bg-[#fbebe7] text-[#1a1a1a] p-4 shadow-[0_24px_50px_-10px_rgba(0,0,0,0.8)] border border-[#dfccd5]/50 flex flex-col gap-3 justify-center items-center w-64 md:w-72 select-none pointer-events-none">
                 <div className="absolute top-2 right-2 text-stone-300 transform font-mono text-[9px] font-bold">PREVIEW SPECIMEN</div>
-                
+
                 {/* Simulated photocard frames */}
                 <div className="w-full aspect-[4/3] bg-stone-900 border border-black/10 overflow-hidden relative flex items-center justify-center">
                   <div className="absolute inset-0 bg-gradient-to-t from-red-900/40 to-transparent z-10" />
                   <Heart className="w-8 h-8 text-white/30 animate-pulse relative z-10" />
                   <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#111_1px,transparent_1px)] [background-size:8px_8px]" />
                 </div>
-                
+
                 <div className="w-full aspect-[4/3] bg-stone-800 border border-black/10 overflow-hidden relative flex items-center justify-center">
                   <p className="text-[11px] uppercase tracking-widest font-mono text-white/40">S.O.L STUDIO</p>
                   <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:6px_6px]" />
@@ -341,7 +341,7 @@ export default function Photobooth() {
 
         {/* SCREEN 2: ACTIVE PHOTOBOOTH WORKSPACE */}
         {screen === 'active' && (
-          <motion.div 
+          <motion.div
             key="workspace-active"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -350,7 +350,7 @@ export default function Photobooth() {
           >
             {/* BACK TO MENU / BRAND HEADER BAR (MOBILE) */}
             <div className="md:hidden flex justify-between items-center px-6 py-4 bg-[#0f0f0f] border-b border-[#222]">
-              <button 
+              <button
                 onClick={returnToMenu}
                 className="text-xs uppercase tracking-wider text-stone-400 hover:text-white flex items-center gap-1.5 font-mono"
               >
@@ -362,7 +362,7 @@ export default function Photobooth() {
 
             {/* Workspace Sidebar controls */}
             <aside className="w-full md:w-80 bg-[#0f0f0f] md:border-r border-[#2a2a2a] p-6 md:p-8 flex flex-col shrink-0 overflow-y-auto">
-              
+
               {/* Back to main landing */}
               <button
                 onClick={returnToMenu}
@@ -388,8 +388,8 @@ export default function Photobooth() {
                         onClick={() => setActiveLayoutId(layout.id)}
                         className={cn(
                           "aspect-square border flex flex-col gap-1 p-1.5 items-center justify-center transition-all disabled:opacity-30 rounded-xs cursor-pointer",
-                          activeLayoutId === layout.id 
-                            ? "border-white bg-white/5 text-white" 
+                          activeLayoutId === layout.id
+                            ? "border-white bg-white/5 text-white"
                             : "border-[#222] hover:border-[#444] text-[#888] hover:text-white"
                         )}
                         title={layout.name}
@@ -425,8 +425,8 @@ export default function Photobooth() {
                         onClick={() => setPhotoDelay(sec)}
                         className={cn(
                           "py-1.5 text-xs font-mono border transition-all cursor-pointer rounded-xs",
-                          photoDelay === sec 
-                            ? "border-white bg-white text-black" 
+                          photoDelay === sec
+                            ? "border-white bg-white text-black"
                             : "border-[#222] text-[#888] hover:text-white hover:border-[#444]"
                         )}
                       >
@@ -448,8 +448,8 @@ export default function Photobooth() {
                         onClick={() => setActiveFilterId(f.id as FilterType)}
                         className={cn(
                           "py-2 px-3 text-[10px] uppercase font-bold text-left border transition-all truncate rounded-xs cursor-pointer",
-                          activeFilterId === f.id 
-                            ? "border-white bg-white/5 text-white" 
+                          activeFilterId === f.id
+                            ? "border-white bg-white/5 text-white"
                             : "border-[#222] text-stone-400 hover:text-white hover:border-[#444]"
                         )}
                       >
@@ -467,7 +467,7 @@ export default function Photobooth() {
                   disabled={!isCameraReady || captureState === 'countdown' || captureState === 'capturing'}
                   className="w-full py-4.5 bg-white text-black hover:bg-stone-100 text-xs font-bold uppercase tracking-[0.25em] flex items-center justify-center gap-3 transition-colors disabled:opacity-40 select-none cursor-pointer"
                 >
-                  <Camera className="w-4 h-4" /> 
+                  <Camera className="w-4 h-4" />
                   {captureState === 'idle' ? 'Start Session' : 'Capturing...'}
                 </button>
               </div>
@@ -477,7 +477,7 @@ export default function Photobooth() {
             <main className="flex-grow relative flex items-center justify-center p-4 md:p-12 bg-[#080808] overflow-hidden min-h-[400px]">
               {/* Vignette Shadow Overlay */}
               <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.95)] z-20" />
-              
+
               {/* Live Status Indicators (Desktop) */}
               <div className="absolute top-8 left-8 hidden md:flex items-center gap-3 z-10 font-mono">
                 <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
@@ -500,11 +500,11 @@ export default function Photobooth() {
 
                 {/* Animated Film grain live overlay */}
                 <div className="absolute inset-0 pointer-events-none opacity-[0.22] mix-blend-overlay z-15 bg-[radial-gradient(#fff_1.2px,transparent_1.2px)] [background-size:10px_10px]" />
-                
+
                 {/* Countdown Overlay */}
                 {captureState === 'countdown' && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/45 backdrop-blur-xs z-20">
-                    <motion.span 
+                    <motion.span
                       key={countdownNum}
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1.1, opacity: 1 }}
@@ -538,7 +538,7 @@ export default function Photobooth() {
 
         {/* SCREEN 3: HIGH-RES REVIEW & RETAKE */}
         {screen === 'review' && (
-          <motion.div 
+          <motion.div
             key="workspace-review"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -553,7 +553,7 @@ export default function Photobooth() {
               </div>
 
               <div className="space-y-6 flex-grow">
-                
+
                 {/* 1. Select Theme Card Template */}
                 <section>
                   <label className="text-[11px] uppercase tracking-widest text-[#888] font-semibold block mb-2.5">Card Material Theme</label>
@@ -564,8 +564,8 @@ export default function Photobooth() {
                         onClick={() => setActiveThemeId(theme.id)}
                         className={cn(
                           "px-2.5 py-2 border text-left rounded-xs transition-all flex flex-col justify-between h-[52px] select-none cursor-pointer",
-                          activeThemeId === theme.id 
-                            ? "border-white bg-white/5" 
+                          activeThemeId === theme.id
+                            ? "border-white bg-white/5"
                             : "border-[#222] hover:border-[#333] hover:bg-white/5"
                         )}
                       >
@@ -592,8 +592,8 @@ export default function Photobooth() {
                         onClick={() => setSelectedPhotoIndex(idx)}
                         className={cn(
                           "py-2 text-[10px] font-mono border transition-all cursor-pointer rounded-xs",
-                          selectedPhotoIndex === idx 
-                            ? "border-white bg-white text-black" 
+                          selectedPhotoIndex === idx
+                            ? "border-white bg-white text-black"
                             : "border-[#222] text-stone-400 hover:text-white hover:border-[#333]"
                         )}
                       >
@@ -607,7 +607,7 @@ export default function Photobooth() {
                 {/* 3. Dynamic Realtime Filters adjustment */}
                 <section className="pt-4 border-t border-[#222] space-y-4">
                   <label className="text-[11px] uppercase tracking-widest text-[#888] font-semibold block">Post-Processing Aesthetics</label>
-                  
+
                   {/* Realtime filter dropdown option */}
                   <div className="space-y-1.5">
                     <span className="text-[10px] text-stone-400">Tone Preset</span>
@@ -627,9 +627,9 @@ export default function Photobooth() {
                       <span>Analog Film Grain</span>
                       <span className="text-[#666] font-mono">{grainIntensity}%</span>
                     </div>
-                    <input 
-                      type="range" 
-                      min="0" max="100" 
+                    <input
+                      type="range"
+                      min="0" max="100"
                       value={grainIntensity}
                       onChange={(e) => setGrainIntensity(Number(e.target.value))}
                       className="w-full h-1 bg-[#222] rounded-none appearance-none cursor-pointer accent-white"
@@ -638,7 +638,7 @@ export default function Photobooth() {
 
                   <div className="flex items-center justify-between pt-1">
                     <span className="text-[11px]">Nostalgic Camera Date Stamp</span>
-                    <button 
+                    <button
                       onClick={() => setShowDate(!showDate)}
                       className={cn(
                         "w-10 h-5 rounded-full flex items-center px-1 transition-colors relative cursor-pointer",
@@ -657,7 +657,7 @@ export default function Photobooth() {
               {/* Export Deliverables Area */}
               <div className="mt-8 space-y-3 pt-6 border-t border-[#2a2a2a]">
                 <label className="text-[11px] uppercase tracking-widest text-[#888] font-semibold block">Deliverables</label>
-                
+
                 <button
                   onClick={() => handleExport('jpg')}
                   disabled={isExporting}
@@ -665,7 +665,7 @@ export default function Photobooth() {
                 >
                   Export High-Res JPG
                 </button>
-                
+
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleExport('png')}
@@ -704,12 +704,12 @@ export default function Photobooth() {
             <main className="flex-grow relative flex items-center justify-center p-4 md:p-12 bg-[#080808] overflow-hidden min-h-[450px]">
               {/* Vignette Shadow Overlay */}
               <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.95)] z-20" />
-              
+
               {previewCanvasDataUrl && (
                 <div className="relative max-h-full max-w-full flex items-center justify-center animate-in fade-in zoom-in-95 duration-500 z-10 p-2 select-none md:p-6">
-                  <img 
-                    src={previewCanvasDataUrl} 
-                    alt="Final composited strip" 
+                  <img
+                    src={previewCanvasDataUrl}
+                    alt="Final composited strip"
                     className="max-h-[80vh] md:max-h-[84vh] w-auto max-w-full object-contain shadow-3xl transform md:rotate-1"
                     style={{
                       filter: 'drop-shadow(0 25px 50px rgba(0, 0, 0, 0.7))'
