@@ -281,7 +281,7 @@ export default function Photobooth() {
                   S.O.L
                 </h1>
                 <p className="text-stone-400 text-lg md:text-xl font-normal leading-relaxed max-w-md">
-                  A romantic and luxury analog-digital photobooth crafted for archiving snapshots of memories, affection, and everyday poetry.
+                  S.O.L (Snap of Love) is an analog-digital photobooth crafted for archiving snapshots of memories, affection, and everyday poetry.
                 </p>
               </div>
 
