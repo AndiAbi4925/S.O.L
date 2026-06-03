@@ -66,9 +66,26 @@ function PixelHeart({ className, style }: { className?: string; style?: React.CS
 export default function Photobooth() {
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
   const [hearts, setHearts] = useState<HeartParticle[]>([]);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [isCardHovered, setIsCardHovered] = useState(false);
+
+  const handleCardMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    const rotateX = -(y / (rect.height / 2)) * 12;
+    const rotateY = (x / (rect.width / 2)) * 12;
+    setTilt({ x: rotateX, y: rotateY });
+  }, []);
+
+  const handleCardMouseLeave = useCallback(() => {
+    setIsCardHovered(false);
+    setTilt({ x: 0, y: 0 });
+  }, []);
 
   const spawnHearts = useCallback(() => {
-    const heartColors = ['#ff4d6d', '#ff758f', '#ff85a1', '#ffb3c1', '#ff3366', '#ff0055', '#ff4500'];
+    const heartColors = ['#8e1616'];
     const newHearts = Array.from({ length: 8 }).map((_, i) => {
       const x = 25 + Math.random() * 50;
       const y = 60 + Math.random() * 20;
@@ -320,11 +337,13 @@ export default function Photobooth() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-[#e0e0e0] font-sans flex flex-col items-center justify-center select-none relative overflow-x-hidden md:p-4">
+    <div className="h-screen w-screen overflow-hidden bg-[#080808] text-[#e0e0e0] font-sans flex flex-col items-center justify-center select-none relative md:p-4">
 
-      {/* Background Ambience Light Glows */}
-      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-red-900/10 rounded-full blur-[140px] pointer-events-none -translate-x-1/2 -translate-y-1/2 z-0" />
-      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#dfccd5]/5 rounded-full blur-[120px] pointer-events-none translate-x-1/2 translate-y-1/2 z-0" />
+      {/* Background Ambience Light Glows (Corner Edges) */}
+      <div className="absolute -top-[200px] -left-[200px] w-[500px] h-[500px] bg-[#8e1616] rounded-full blur-[140px] pointer-events-none z-0 animate-ambient-1" />
+      <div className="absolute -bottom-[200px] -right-[200px] w-[500px] h-[500px] bg-[#8e1616] rounded-full blur-[140px] pointer-events-none z-0 animate-ambient-2" />
+      <div className="absolute -top-[150px] -right-[150px] w-[400px] h-[400px] bg-[#dfccd5] rounded-full blur-[120px] pointer-events-none z-0 animate-ambient-3" />
+      <div className="absolute -bottom-[150px] -left-[150px] w-[400px] h-[400px] bg-[#dfccd5] rounded-full blur-[120px] pointer-events-none z-0 animate-ambient-4" />
 
       <AnimatePresence mode="wait">
 
@@ -342,7 +361,7 @@ export default function Photobooth() {
             <div className="flex-1 flex flex-col justify-center text-left space-y-8">
               <div className="space-y-4">
                 <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-full">
-                  <Heart className="w-3.5 h-3.5 text-red-400 fill-red-400/30 animate-pulse" />
+                  <Heart className="w-3.5 h-3.5 animate-pulse" style={{ color: '#8e1616', fill: 'rgba(142, 22, 22, 0.3)' }} />
                   <span className="text-[10px] uppercase font-mono tracking-[0.25em] text-[#bbb]">Snap of Love</span>
                 </div>
                 <h1 className="text-6xl md:text-7xl font-serif font-normal italic tracking-tight text-white leading-none">
@@ -380,8 +399,39 @@ export default function Photobooth() {
             </div>
 
             {/* Simulated Animated Preview Column (Aesthetics Showcase) */}
-            <div className="w-full md:w-80 shrink-0 flex items-center justify-center">
-              <div className="relative transform rotate-2 bg-[#fbebe7] text-[#1a1a1a] p-4 shadow-[0_24px_50px_-10px_rgba(0,0,0,0.8)] border border-[#dfccd5]/50 flex flex-col gap-3 justify-center items-center w-64 md:w-72 select-none pointer-events-none">
+            <div className="w-full md:w-80 shrink-0 flex items-center justify-center" style={{ perspective: 1000 }}>
+              <motion.div
+                onMouseEnter={() => setIsCardHovered(true)}
+                onMouseMove={handleCardMouseMove}
+                onMouseLeave={handleCardMouseLeave}
+                animate={isCardHovered ? {
+                  rotateX: tilt.x,
+                  rotateY: tilt.y,
+                  scale: 1.04,
+                  rotateZ: 0,
+                  y: -10,
+                } : {
+                  rotateX: 0,
+                  rotateY: 0,
+                  scale: 1,
+                  rotateZ: 2, // base rotation
+                  y: [0, -6, 0], // constant floating loop
+                }}
+                transition={isCardHovered ? {
+                  type: 'spring',
+                  stiffness: 150,
+                  damping: 15
+                } : {
+                  y: {
+                    repeat: Infinity,
+                    duration: 5,
+                    ease: 'easeInOut'
+                  },
+                  duration: 0.5
+                }}
+                style={{ transformStyle: 'preserve-3d' }}
+                className="relative bg-[#fbebe7] text-[#1a1a1a] p-4 shadow-[0_24px_50px_-10px_rgba(0,0,0,0.8)] border border-[#dfccd5]/50 flex flex-col gap-3 justify-center items-center w-64 md:w-72 select-none cursor-pointer"
+              >
                 <div className="absolute top-2 right-2 text-stone-300 transform font-mono text-[9px] font-bold">PREVIEW SPECIMEN</div>
 
                 {/* Simulated photocard frames */}
@@ -398,10 +448,10 @@ export default function Photobooth() {
 
                 {/* Stamp & Branding signoff */}
                 <div className="w-full flex items-center justify-between text-black px-1 mt-1 text-[9px]">
-                  <span className="font-mono text-[#ff4500] font-bold tracking-tighter">'26.05.20</span>
+                  <span className="font-mono text-[#8e1616] font-bold tracking-tighter">'26.05.20</span>
                   <span className="font-sans font-bold tracking-[0.15em] uppercase text-stone-700">SNAP OF LOVE</span>
                 </div>
-              </div>
+              </motion.div>
             </div>
 
           </motion.div>
@@ -425,7 +475,7 @@ export default function Photobooth() {
                 <ArrowLeft className="w-4 h-4" /> Menu
               </button>
               <span className="font-serif italic text-lg leading-none text-white tracking-wide">S.O.L</span>
-              <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse" />
+              <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: '#8e1616' }} />
             </div>
 
             {/* Workspace Sidebar controls */}
@@ -441,7 +491,7 @@ export default function Photobooth() {
 
               <div className="mb-8 hidden md:block">
                 <h1 className="font-serif text-3xl italic tracking-tight text-white block">S.O.L</h1>
-                <p className="text-[9px] uppercase tracking-[0.3em] text-[#666] mt-1">Snap of Love • Capture Stage</p>
+                <p className="text-[9px] uppercase tracking-[0.3em] text-[#666] mt-1">Snap of Love • Booth</p>
               </div>
 
               <div className="space-y-6 flex-grow">
@@ -548,8 +598,8 @@ export default function Photobooth() {
 
               {/* Live Status Indicators (Desktop) */}
               <div className="absolute top-8 left-8 hidden md:flex items-center gap-3 z-10 font-mono">
-                <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
-                <span className="text-[11px] uppercase tracking-widest text-[#aaa]">LIVE RETRO VIEWPORT</span>
+                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#8e1616' }}></div>
+                <span className="text-[11px] uppercase tracking-widest text-[#aaa]">LIVE VIEW S.O.L CAM</span>
               </div>
               <div className="absolute bottom-8 right-8 hidden md:block text-right z-10 font-mono">
                 <p className="text-[10px] text-white/20">PREVIEW COMPRESSOR: HIGH-RES 60FPS</p>
@@ -562,6 +612,7 @@ export default function Photobooth() {
                   ref={setVideoElement}
                   muted
                   playsInline
+                  autoPlay
                   style={{ filter: currentFilter.style }}
                   className="w-full h-full object-cover transform -scale-x-100 transition-all duration-300"
                 />
@@ -628,8 +679,8 @@ export default function Photobooth() {
                 {['countdown', 'capturing'].includes(captureState) && (
                   <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/85 border border-[#333] px-5 py-2.5 text-[10px] font-mono uppercase tracking-[0.2em] text-[#e0e0e0] z-25 rounded-full shadow-lg">
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: '#8e1616' }}></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: '#8e1616' }}></span>
                     </span>
                     <span>Pose {capturedPhotos.length + 1} of {activeLayout.slots.length}</span>
                   </div>

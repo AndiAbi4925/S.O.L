@@ -28,7 +28,7 @@ export const CARD_THEMES: Record<string, CardTheme> = {
     bgHex: '#faf9f6',
     borderHex: '#eaeaea',
     fontHex: '#1a1a1a',
-    stampColor: '#ff4500', // Neon Orange date stamp
+    stampColor: '#8e1616', // Deep Ruby date stamp
     label: 'S.O.L ARCHIVE',
   },
   'obsidian': {
@@ -58,7 +58,7 @@ export const CARD_THEMES: Record<string, CardTheme> = {
     bgHex: '#f4ecd8',
     borderHex: '#dfd5be',
     fontHex: '#3d3423',
-    stampColor: '#c84b31', // Rust Red date stamp
+    stampColor: '#8e1616', // Deep Ruby date stamp
     label: 'S.O.L MEMORIES EST. 2026',
   },
   'cyber': {
@@ -181,6 +181,84 @@ export function drawGrain(
   }
 }
 
+function applyManualFilter(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  filterId: FilterType
+) {
+  if (filterId === 'none') return;
+  const imgData = ctx.getImageData(x, y, w, h);
+  const data = imgData.data;
+
+  if (filterId === 'grayscale') {
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+      gray = gray * 1.05; // Brightness (1.05)
+      const factor = (259 * (38.25 + 255)) / (255 * (259 - 38.25));
+      gray = factor * (gray - 128) + 128; // Contrast (1.15)
+      const finalVal = Math.min(255, Math.max(0, gray));
+      data[i] = finalVal;
+      data[i + 1] = finalVal;
+      data[i + 2] = finalVal;
+    }
+  } else if (filterId === 'vintage') {
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      
+      const sr = (r * 0.393 + g * 0.769 + b * 0.189);
+      const sg = (r * 0.349 + g * 0.686 + b * 0.168);
+      const sb = (r * 0.272 + g * 0.534 + b * 0.131);
+      
+      let fr = r * 0.65 + sr * 0.35;
+      let fg = g * 0.65 + sg * 0.35;
+      let fb = b * 0.65 + sb * 0.35;
+      
+      const gray = 0.299 * fr + 0.587 * fg + 0.114 * fb;
+      fr = gray + (fr - gray) * 1.2; // Saturation (1.2)
+      fg = gray + (fg - gray) * 1.2;
+      fb = gray + (fb - gray) * 1.2;
+
+      const factor = (259 * (12.75 + 255)) / (255 * (259 - 12.75));
+      fr = factor * (fr - 128) + 128; // Contrast (1.05)
+      fg = factor * (fg - 128) + 128;
+      fb = factor * (fb - 128) + 128;
+      
+      data[i] = Math.min(255, Math.max(0, fr));
+      data[i + 1] = Math.min(255, Math.max(0, fg));
+      data[i + 2] = Math.min(255, Math.max(0, fb));
+    }
+  } else if (filterId === 'cyber') {
+    for (let i = 0; i < data.length; i += 4) {
+      let r = data[i] * 1.02; // Brightness (1.02)
+      let g = data[i + 1] * 1.02;
+      let b = data[i + 2] * 1.02;
+      
+      const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+      r = gray + (r - gray) * 1.45; // Saturation (1.45)
+      g = gray + (g - gray) * 1.45;
+      b = gray + (b - gray) * 1.45;
+      
+      const factor = (259 * (38.25 + 255)) / (255 * (259 - 38.25));
+      r = factor * (r - 128) + 128; // Contrast (1.15)
+      g = factor * (g - 128) + 128;
+      b = factor * (b - 128) + 128;
+      
+      data[i] = Math.min(255, Math.max(0, r));
+      data[i + 1] = Math.min(255, Math.max(0, g));
+      data[i + 2] = Math.min(255, Math.max(0, b));
+    }
+  }
+  ctx.putImageData(imgData, x, y);
+}
+
 export function renderStrip(
   photos: HTMLCanvasElement[][],
   layout: LayoutDef,
@@ -233,11 +311,18 @@ export function renderStrip(
       // Hardware accelerated filter application
       const activeFilter = VISUAL_FILTERS[filterId] || VISUAL_FILTERS.none;
       if (activeFilter.canvasFilter !== 'none') {
-        ctx.filter = activeFilter.canvasFilter;
+        if ('filter' in ctx) {
+          ctx.filter = activeFilter.canvasFilter;
+        }
       }
 
       ctx.drawImage(img, sx, sy, sw, sh, slot.x, slot.y, slot.w, slot.h);
       ctx.restore();
+
+      // Fallback for Safari/iOS browsers that do not support native Canvas filters
+      if (!('filter' in ctx) && filterId !== 'none') {
+        applyManualFilter(ctx, slot.x, slot.y, slot.w, slot.h, filterId);
+      }
     } else {
       // Empty slot placeholder
       ctx.fillStyle = theme.borderHex;
