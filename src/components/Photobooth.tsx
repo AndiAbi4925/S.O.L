@@ -30,8 +30,68 @@ import { createGifExporter } from '../lib/exportUtils';
 type ScreenState = 'landing' | 'active' | 'review';
 type CapturingState = 'idle' | 'countdown' | 'capturing' | 'completed';
 
+interface HeartParticle {
+  id: number;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  wiggle: number;
+  color: string;
+}
+
+function PixelHeart({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg viewBox="0 0 9 8" className={className} style={style} fill="currentColor">
+      {/* Row 0 */}
+      <rect x="1" y="0" width="2" height="1" />
+      <rect x="6" y="0" width="2" height="1" />
+      {/* Row 1 */}
+      <rect x="0" y="1" width="4" height="1" />
+      <rect x="5" y="1" width="4" height="1" />
+      {/* Row 2 & 3 */}
+      <rect x="0" y="2" width="9" height="2" />
+      {/* Row 4 */}
+      <rect x="1" y="4" width="7" height="1" />
+      {/* Row 5 */}
+      <rect x="2" y="5" width="5" height="1" />
+      {/* Row 6 */}
+      <rect x="3" y="6" width="3" height="1" />
+      {/* Row 7 */}
+      <rect x="4" y="7" width="1" height="1" />
+    </svg>
+  );
+}
+
 export default function Photobooth() {
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
+  const [hearts, setHearts] = useState<HeartParticle[]>([]);
+
+  const spawnHearts = useCallback(() => {
+    const heartColors = ['#ff4d6d', '#ff758f', '#ff85a1', '#ffb3c1', '#ff3366', '#ff0055', '#ff4500'];
+    const newHearts = Array.from({ length: 8 }).map((_, i) => {
+      const x = 25 + Math.random() * 50;
+      const y = 60 + Math.random() * 20;
+      const scale = 0.6 + Math.random() * 0.8;
+      const rotation = -30 + Math.random() * 60;
+      const wiggle = -50 + Math.random() * 100;
+      const color = heartColors[Math.floor(Math.random() * heartColors.length)];
+      return {
+        id: Date.now() + i + Math.random(),
+        x,
+        y,
+        scale,
+        rotation,
+        wiggle,
+        color,
+      };
+    });
+    setHearts((prev) => [...prev, ...newHearts]);
+  }, []);
+
+  const removeHeart = useCallback((id: number) => {
+    setHearts((prev) => prev.filter((h) => h.id !== id));
+  }, []);
 
   // App Navigation Flow
   const [screen, setScreen] = useState<ScreenState>('landing');
@@ -143,6 +203,7 @@ export default function Photobooth() {
       // Capture phase (burst of 5 quick frames for animating GIF layout)
       setCaptureState('capturing');
       setFlash(true);
+      spawnHearts();
       setTimeout(() => setFlash(false), 80);
 
       const frames: HTMLCanvasElement[] = [];
@@ -507,6 +568,41 @@ export default function Photobooth() {
 
                 {/* Animated Film grain live overlay */}
                 <div className="absolute inset-0 pointer-events-none opacity-[0.22] mix-blend-overlay z-15 bg-[radial-gradient(#fff_1.2px,transparent_1.2px)] [background-size:10px_10px]" />
+
+                {/* Floating Pixelated Hearts Shutter Overlay */}
+                <AnimatePresence>
+                  {hearts.map((heart) => (
+                    <motion.div
+                      key={heart.id}
+                      initial={{
+                        opacity: 0,
+                        scale: 0,
+                        left: `${heart.x}%`,
+                        top: `${heart.y}%`,
+                        rotate: heart.rotation,
+                      }}
+                      animate={{
+                        opacity: [0, 1, 1, 0],
+                        scale: [0.2, heart.scale, heart.scale, 0],
+                        y: [0, -180],
+                        x: [0, heart.wiggle],
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        ease: 'easeOut',
+                      }}
+                      onAnimationComplete={() => removeHeart(heart.id)}
+                      style={{
+                        position: 'absolute',
+                        transform: 'translate(-50%, -50%)',
+                        color: heart.color,
+                      }}
+                      className="absolute pointer-events-none z-30"
+                    >
+                      <PixelHeart className="w-8 h-8" />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
 
                 {/* Countdown Overlay */}
                 {captureState === 'countdown' && (
