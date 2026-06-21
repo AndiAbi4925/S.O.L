@@ -864,13 +864,13 @@ export default function Photobooth() {
                       Share your experience with us
                     </p>
                     <a
-                      href="https://www.instagram.com/snap.of.love/"
+                      href="https://www.instagram.com/snapoflove.id/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-90 text-white text-[10px] font-bold uppercase tracking-wider rounded-full transition-opacity cursor-pointer shadow-lg"
                     >
                       <Instagram className="w-3.5 h-3.5" />
-                      @snap.of.love
+                      @snapoflove.id
                     </a>
                   </div>
                 </div>

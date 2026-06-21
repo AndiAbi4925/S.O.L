@@ -358,7 +358,7 @@ export function renderStrip(
   // Draw QR code linking to Instagram page and Brand Signature
   try {
     const qr = qrcode(0, 'M');
-    qr.addData('https://www.instagram.com/snap.of.love/');
+    qr.addData('https://www.instagram.com/snapoflove.id/');
     qr.make();
 
     const moduleCount = qr.getModuleCount();
