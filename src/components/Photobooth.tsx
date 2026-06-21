@@ -24,9 +24,11 @@ import {
   CardTheme,
   VISUAL_FILTERS,
   FilterType,
-  renderStrip
+  renderStrip,
+  PlacedSticker
 } from '../lib/renderUtils';
 import { createGifExporter } from '../lib/exportUtils';
+import { playTick, playShutter, playDing } from '../lib/audioUtils';
 
 type ScreenState = 'landing' | 'active' | 'review';
 type CapturingState = 'idle' | 'countdown' | 'capturing' | 'completed';
@@ -63,6 +65,9 @@ function PixelHeart({ className, style }: { className?: string; style?: React.CS
     </svg>
   );
 }
+
+const EMOJIS = ['❤️', '💖', '✨', '🌟', '🎀', '🧸', '🍒', '🥂', '📸', '✌️', '👽', '🐶', '🐈', '🍀', '🍕', '💀'];
+const WORDS = ['S.O.L', 'LOVE', 'CUTE', 'SWEET', 'MEMORIES', 'BABY', 'XOXO', 'FOREVER', 'TODAY'];
 
 export default function Photobooth() {
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
@@ -131,6 +136,25 @@ export default function Photobooth() {
   const [previewCanvasDataUrl, setPreviewCanvasDataUrl] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(2); // for static frame review (defaults to middle burst frame)
+
+  // Stickers State
+  const [stickers, setStickers] = useState<PlacedSticker[]>([]);
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
+  const [stickerTab, setStickerTab] = useState<'emoji' | 'text'>('emoji');
+  const [containerWidth, setContainerWidth] = useState<number>(0);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // ResizeObserver to track review strip DOM width for sticker scaling
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [screen]);
 
   const activeLayout = LAYOUTS[activeLayoutId];
   const activeTheme = CARD_THEMES[activeThemeId];
@@ -205,7 +229,8 @@ export default function Photobooth() {
   }, [videoElement]);
 
   // Run full photo session loop
-  const runSession = async () => {
+  // Run full photo session loop
+  const runSession = useCallback(async () => {
     setCapturedPhotos([]);
     const totalShots = activeLayout.slots.length;
     const newPhotos: HTMLCanvasElement[][] = [];
@@ -215,6 +240,7 @@ export default function Photobooth() {
       setCaptureState('countdown');
       for (let i = photoDelay; i > 0; i--) {
         setCountdownNum(i);
+        playTick();
         await new Promise((r) => setTimeout(r, 1000));
       }
 
@@ -222,6 +248,7 @@ export default function Photobooth() {
       setCaptureState('capturing');
       setFlash(true);
       spawnHearts();
+      playShutter();
       setTimeout(() => setFlash(false), 80);
 
       const frames: HTMLCanvasElement[] = [];
@@ -235,7 +262,144 @@ export default function Photobooth() {
 
     setCaptureState('completed');
     setScreen('review');
-  };
+  }, [activeLayout, photoDelay, spawnHearts, captureFrame]);
+
+  // Listen for Spacebar or Enter to start the photo session
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (screen === 'active' && isCameraReady && captureState === 'idle') {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          runSession();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [screen, isCameraReady, captureState, runSession]);
+
+  // Sticker Stamp Helpers
+  const addSticker = useCallback((type: 'emoji' | 'text', text: string) => {
+    const newSticker: PlacedSticker = {
+      id: `sticker-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type,
+      text,
+      x: 50,
+      y: 50,
+      scale: 1.0,
+      rotation: 0,
+    };
+    setStickers(prev => [...prev, newSticker]);
+    setSelectedStickerId(newSticker.id);
+  }, []);
+
+  const deleteSticker = useCallback((id: string) => {
+    setStickers(prev => prev.filter(s => s.id !== id));
+    setSelectedStickerId(null);
+  }, []);
+
+  const updateStickerScale = useCallback((id: string, amount: number) => {
+    setStickers(prev => prev.map(s => {
+      if (s.id === id) {
+        const nextScale = Math.max(0.4, Math.min(3.0, s.scale + amount));
+        return { ...s, scale: Number(nextScale.toFixed(2)) };
+      }
+      return s;
+    }));
+  }, []);
+
+  const updateStickerRotation = useCallback((id: string, amount: number) => {
+    setStickers(prev => prev.map(s => {
+      if (s.id === id) {
+        return { ...s, rotation: (s.rotation + amount) % 360 };
+      }
+      return s;
+    }));
+  }, []);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent, stickerId: string) => {
+    e.preventDefault();
+    const sticker = stickers.find(s => s.id === stickerId);
+    if (!sticker) return;
+
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initialX = sticker.x;
+    const initialY = sticker.y;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = ((moveEvent.clientX - startX) / rect.width) * 100;
+      const deltaY = ((moveEvent.clientY - startY) / rect.height) * 100;
+      
+      setStickers(prev => prev.map(s => 
+        s.id === stickerId 
+          ? { 
+              ...s, 
+              x: Math.max(0, Math.min(100, initialX + deltaX)), 
+              y: Math.max(0, Math.min(100, initialY + deltaY)) 
+            }
+          : s
+      ));
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }, [stickers]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent, stickerId: string) => {
+    const touch = e.touches[0];
+    const sticker = stickers.find(s => s.id === stickerId);
+    if (!sticker) return;
+
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const startX = touch.clientX;
+    const startY = touch.clientY;
+    const initialX = sticker.x;
+    const initialY = sticker.y;
+
+    const handleTouchMove = (moveEvent: TouchEvent) => {
+      const currentTouch = moveEvent.touches[0];
+      const deltaX = ((currentTouch.clientX - startX) / rect.width) * 100;
+      const deltaY = ((currentTouch.clientY - startY) / rect.height) * 100;
+
+      setStickers(prev => prev.map(s =>
+        s.id === stickerId
+          ? {
+              ...s,
+              x: Math.max(0, Math.min(100, initialX + deltaX)),
+              y: Math.max(0, Math.min(100, initialY + deltaY))
+            }
+          : s
+      ));
+    };
+
+    const handleTouchEnd = () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd);
+  }, [stickers]);
+
+  const handleOverlayClick = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setSelectedStickerId(null);
+    }
+  }, []);
 
   // Re-generate dynamic high-end preview strip on changes
   useEffect(() => {
@@ -270,7 +434,8 @@ export default function Photobooth() {
           showDate,
           selectedPhotoIndex,
           activeThemeId,
-          activeFilterId
+          activeFilterId,
+          stickers
         );
         const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
         url = cvs.toDataURL(mime, 0.95);
@@ -287,7 +452,8 @@ export default function Photobooth() {
               showDate,
               i,
               activeThemeId,
-              activeFilterId
+              activeFilterId,
+              stickers
             )
           );
         }
@@ -316,6 +482,7 @@ export default function Photobooth() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      playDing();
     } catch (e) {
       console.error('Export error', e);
     } finally {
@@ -327,6 +494,8 @@ export default function Photobooth() {
     setCapturedPhotos([]);
     setCaptureState('idle');
     setPreviewCanvasDataUrl(null);
+    setStickers([]);
+    setSelectedStickerId(null);
     setScreen('active');
   };
 
@@ -334,6 +503,8 @@ export default function Photobooth() {
     setCapturedPhotos([]);
     setCaptureState('idle');
     setPreviewCanvasDataUrl(null);
+    setStickers([]);
+    setSelectedStickerId(null);
     setScreen('landing');
   };
 
@@ -672,9 +843,17 @@ export default function Photobooth() {
                 )}
 
                 {/* White Flash shutter layer */}
-                {flash && (
-                  <div className="absolute inset-0 bg-white opacity-100 z-50 duration-75 ease-out" />
-                )}
+                <AnimatePresence>
+                  {flash && (
+                    <motion.div
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.7, ease: 'easeOut' }}
+                      className="absolute inset-0 bg-white z-50 pointer-events-none"
+                    />
+                  )}
+                </AnimatePresence>
 
                 {/* In-progress state overlay indicator */}
                 {['countdown', 'capturing'].includes(captureState) && (
@@ -807,6 +986,120 @@ export default function Photobooth() {
                     </button>
                   </div>
                 </section>
+
+                {/* 4. Stickers & Stamp Tray */}
+                <section className="pt-4 border-t border-[#222] space-y-3">
+                  <label className="text-[11px] uppercase tracking-widest text-[#888] font-semibold block">Stickers & Stamps</label>
+                  
+                  {/* Category switcher */}
+                  <div className="flex gap-1.5 bg-[#121212] p-1 border border-[#222] rounded-xs">
+                    <button
+                      onClick={() => setStickerTab('emoji')}
+                      className={cn(
+                        "flex-1 py-1 text-[9px] uppercase font-mono tracking-widest rounded-xs transition-colors cursor-pointer",
+                        stickerTab === 'emoji' ? "bg-white text-black font-semibold" : "text-[#777] hover:text-white"
+                      )}
+                    >
+                      Emojis
+                    </button>
+                    <button
+                      onClick={() => setStickerTab('text')}
+                      className={cn(
+                        "flex-1 py-1 text-[9px] uppercase font-mono tracking-widest rounded-xs transition-colors cursor-pointer",
+                        stickerTab === 'text' ? "bg-white text-black font-semibold" : "text-[#777] hover:text-white"
+                      )}
+                    >
+                      Tape Label
+                    </button>
+                  </div>
+
+                  {/* Tray Items */}
+                  <div className="bg-[#121212] border border-[#222] p-2 max-h-[110px] overflow-y-auto rounded-xs animate-in fade-in duration-200">
+                    {stickerTab === 'emoji' ? (
+                      <div className="grid grid-cols-6 gap-2">
+                        {EMOJIS.map(emoji => (
+                          <button
+                            key={emoji}
+                            onClick={() => addSticker('emoji', emoji)}
+                            className="text-lg hover:scale-125 transition-transform p-1 cursor-pointer bg-transparent border-0"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {WORDS.map(word => (
+                          <button
+                            key={word}
+                            onClick={() => addSticker('text', word)}
+                            className="px-2.5 py-1 bg-white/10 hover:bg-white/20 border border-white/5 text-[9px] font-mono uppercase text-white rounded-xs cursor-pointer"
+                          >
+                            {word}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                {/* 5. Active Sticker Editing Controls */}
+                {selectedStickerId && (() => {
+                  const activeSticker = stickers.find(s => s.id === selectedStickerId);
+                  if (!activeSticker) return null;
+                  return (
+                    <section className="pt-4 border-t border-[#222] space-y-3 font-mono animate-in slide-in-from-bottom-2 duration-300">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] text-stone-400">Editing: {activeSticker.text}</span>
+                        <button
+                          onClick={() => deleteSticker(activeSticker.id)}
+                          className="text-[9px] uppercase text-red-500 hover:text-red-400 cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex items-center justify-between border border-[#222] p-1.5 rounded-xs">
+                          <span className="text-[9px] text-stone-500">Scale</span>
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => updateStickerScale(activeSticker.id, -0.15)}
+                              className="w-5 h-5 bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center border border-white/10 rounded-xs cursor-pointer font-bold"
+                            >
+                              -
+                            </button>
+                            <button
+                              onClick={() => updateStickerScale(activeSticker.id, 0.15)}
+                              className="w-5 h-5 bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center border border-white/10 rounded-xs cursor-pointer font-bold"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between border border-[#222] p-1.5 rounded-xs">
+                          <span className="text-[9px] text-stone-500">Rotate</span>
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => updateStickerRotation(activeSticker.id, -15)}
+                              className="w-5 h-5 bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center border border-white/10 rounded-xs cursor-pointer"
+                            >
+                              ↺
+                            </button>
+                            <button
+                              onClick={() => updateStickerRotation(activeSticker.id, 15)}
+                              className="w-5 h-5 bg-white/5 hover:bg-white/10 text-xs flex items-center justify-center border border-white/10 rounded-xs cursor-pointer"
+                            >
+                              ↻
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+                  );
+                })()}
+
               </div>
 
               {/* Export Deliverables Area */}
@@ -883,17 +1176,85 @@ export default function Photobooth() {
               <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.95)] z-20" />
 
               {previewCanvasDataUrl && (
-                <div className="relative max-h-full max-w-full flex items-center justify-center animate-in fade-in zoom-in-95 duration-500 z-10 p-2 select-none md:p-6">
-                  <img
-                    src={previewCanvasDataUrl}
-                    alt="Final composited strip"
-                    className="max-h-[80vh] md:max-h-[84vh] w-auto max-w-full object-contain shadow-3xl transform md:rotate-1"
+                <div className="relative flex items-center justify-center animate-in fade-in zoom-in-95 duration-500 z-10 select-none p-2 md:p-6 max-h-[80vh] md:max-h-[84vh] max-w-full">
+                  
+                  {/* Aspect Ratio Container mapping the active photostrip dimensions exactly */}
+                  <div
+                    ref={containerRef}
+                    onClick={handleOverlayClick}
                     style={{
-                      filter: 'drop-shadow(0 25px 50px rgba(0, 0, 0, 0.7))'
+                      aspectRatio: `${activeLayout.width} / ${activeLayout.height}`,
                     }}
-                  />
+                    className="relative max-h-[80vh] md:max-h-[84vh] w-auto h-full max-w-full shadow-3xl transform md:rotate-1 bg-[#121212] overflow-hidden"
+                  >
+                    <img
+                      src={previewCanvasDataUrl}
+                      alt="Final composited strip"
+                      className="w-full h-full object-contain pointer-events-none"
+                    />
+
+                    {/* Draggable Stickers HTML Overlay */}
+                    <div className="absolute inset-0 pointer-events-auto">
+                      {stickers.map((sticker) => {
+                        const isSelected = selectedStickerId === sticker.id;
+                        const scaleMultiplier = containerWidth / activeLayout.width;
+                        const fontSize = 48 * sticker.scale * scaleMultiplier;
+
+                        return (
+                          <div
+                            key={sticker.id}
+                            style={{
+                              position: 'absolute',
+                              left: `${sticker.x}%`,
+                              top: `${sticker.y}%`,
+                              transform: `translate(-50%, -50%) rotate(${sticker.rotation}deg)`,
+                              fontSize: sticker.type === 'emoji' ? `${fontSize}px` : undefined,
+                              cursor: 'move',
+                              touchAction: 'none',
+                              userSelect: 'none',
+                              zIndex: isSelected ? 40 : 30,
+                            }}
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                              setSelectedStickerId(sticker.id);
+                              handleMouseDown(e, sticker.id);
+                            }}
+                            onTouchStart={(e) => {
+                              e.stopPropagation();
+                              setSelectedStickerId(sticker.id);
+                              handleTouchStart(e, sticker.id);
+                            }}
+                            className={cn(
+                              "absolute flex items-center justify-center group",
+                              isSelected ? "outline-dashed outline-1 outline-white/80" : "outline-none"
+                            )}
+                          >
+                            {sticker.type === 'emoji' ? (
+                              <span>{sticker.text}</span>
+                            ) : (
+                              <span
+                                style={{
+                                  fontFamily: '"Courier New", Courier, monospace',
+                                  fontSize: `${fontSize}px`,
+                                  fontWeight: 'bold',
+                                  padding: `${fontSize * 0.25}px ${fontSize * 0.4}px`,
+                                  color: activeTheme.bgHex,
+                                  backgroundColor: activeTheme.fontHex,
+                                  whiteSpace: 'nowrap',
+                                  lineHeight: 1,
+                                }}
+                              >
+                                {sticker.text}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {isExporting && (
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-50">
                       <div className="w-8 h-8 border-4 border-[#333] border-t-white rounded-full animate-spin mb-4" />
                       <p className="text-white text-[11px] uppercase tracking-[0.2em] font-mono shadow-md">Encoding Frame data...</p>
                     </div>
