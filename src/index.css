@@ -13,6 +13,11 @@ html, body {
   --font-sans: "Lato", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", ui-serif, Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --animate-ambient-1: ambientFlow1 24s ease-in-out infinite, filmShimmer 12s ease-in-out infinite alternate;
+  --animate-ambient-2: ambientFlow2 28s ease-in-out infinite, filmShimmer 15s ease-in-out infinite alternate;
+  --animate-ambient-3: ambientFlow3 32s ease-in-out infinite, filmShimmer 18s ease-in-out infinite alternate;
+  --animate-ambient-4: ambientFlow4 36s ease-in-out infinite, filmShimmer 21s ease-in-out infinite alternate;
 }
 
 @keyframes ambientFlow1 {
@@ -31,8 +36,7 @@ html, body {
 }
 
 @keyframes ambientFlow4 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(50px, -40px) scale(1.1); }
+  0%, 100% { transform: translate(50px, -40px) scale(1.1); }
 }
 
 @keyframes filmShimmer {
@@ -40,20 +44,4 @@ html, body {
   33% { opacity: 0.08; }
   66% { opacity: 0.20; }
   85% { opacity: 0.10; }
-}
-
-.animate-ambient-1 {
-  animation: ambientFlow1 24s ease-in-out infinite, filmShimmer 12s ease-in-out infinite alternate;
-}
-
-.animate-ambient-2 {
-  animation: ambientFlow2 28s ease-in-out infinite, filmShimmer 15s ease-in-out infinite alternate;
-}
-
-.animate-ambient-3 {
-  animation: ambientFlow3 32s ease-in-out infinite, filmShimmer 18s ease-in-out infinite alternate;
-}
-
-.animate-ambient-4 {
-  animation: ambientFlow4 36s ease-in-out infinite, filmShimmer 21s ease-in-out infinite alternate;
 }

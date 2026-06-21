@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import qrcode from 'qrcode-generator';
 
 export interface LayoutDef {
   id: string;
@@ -330,8 +331,19 @@ export function renderStrip(
     }
   });
 
-  // Apply Grain filter overlay
-  drawGrain(ctx, layout.width, layout.height, grain);
+  // Apply Grain filter overlay — scoped to photo slots only (not the card frame)
+  if (grain > 0) {
+    layout.slots.forEach((slot, idx) => {
+      if (photos[idx] && photos[idx][frameIndex]) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(slot.x, slot.y, slot.w, slot.h);
+        ctx.clip();
+        drawGrain(ctx, layout.width, layout.height, grain);
+        ctx.restore();
+      }
+    });
+  }
 
   // Apply Date Stamp
   if (showDate) {
@@ -343,12 +355,55 @@ export function renderStrip(
     ctx.fillText(`'${dateStr}`, layout.datePos.x, layout.datePos.y);
   }
 
-  // Draw Brand signature on physical paper bottom margin
-  const textX = layout.width - 240;
-  const textY = layout.datePos.y;
-  ctx.font = 'bold 16px "Inter", sans-serif';
-  ctx.fillStyle = theme.fontHex;
-  ctx.fillText(theme.label, textX, textY);
+  // Draw QR code linking to Instagram page and Brand Signature
+  try {
+    const qr = qrcode(0, 'M');
+    qr.addData('https://www.instagram.com/snap.of.love/');
+    qr.make();
+
+    const moduleCount = qr.getModuleCount();
+    const qrSize = 56; // px size of the QR code block
+    const cellSize = qrSize / moduleCount;
+
+    // Position: bottom-right corner of the strip
+    const qrX = layout.width - qrSize - 40;
+    const qrY = layout.datePos.y - qrSize + 6;
+
+    // Draw QR modules (No background, match stamp color)
+    ctx.fillStyle = theme.stampColor;
+    for (let row = 0; row < moduleCount; row++) {
+      for (let col = 0; col < moduleCount; col++) {
+        if (qr.isDark(row, col)) {
+          ctx.fillRect(
+            qrX + col * cellSize,
+            qrY + row * cellSize,
+            Math.ceil(cellSize),
+            Math.ceil(cellSize)
+          );
+        }
+      }
+    }
+
+    // Draw Brand signature on physical paper bottom margin, to the left of the QR
+    const textX = qrX - 15;
+    const textY = layout.datePos.y;
+    ctx.font = 'bold 16px "Inter", sans-serif';
+    ctx.fillStyle = theme.fontHex;
+    ctx.textAlign = 'right';
+    ctx.fillText(theme.label, textX, textY);
+    ctx.textAlign = 'left'; // reset
+
+  } catch (e) {
+    console.warn('QR code generation failed:', e);
+    // Fallback if QR fails
+    const textX = layout.width - 40;
+    const textY = layout.datePos.y;
+    ctx.font = 'bold 16px "Inter", sans-serif';
+    ctx.fillStyle = theme.fontHex;
+    ctx.textAlign = 'right';
+    ctx.fillText(theme.label, textX, textY);
+    ctx.textAlign = 'left'; // reset
+  }
 
   return bgCanvas;
 }

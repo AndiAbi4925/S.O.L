@@ -12,7 +12,8 @@ import {
   Film,
   Eye,
   Smile,
-  ShieldCheck
+  ShieldCheck,
+  Instagram
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -850,6 +851,28 @@ export default function Photobooth() {
                   >
                     Return to Menu
                   </button>
+                </div>
+
+                {/* Thank You & Instagram CTA */}
+                <div className="mt-6 pt-5 border-t border-[#2a2a2a]">
+                  <div className="bg-gradient-to-br from-[#1a1018] to-[#140c0c] border border-[#2a2020] rounded-lg p-4 text-center space-y-3">
+                    <Heart className="w-4 h-4 mx-auto" style={{ color: '#8e1616', fill: 'rgba(142, 22, 22, 0.4)' }} />
+                    <p className="text-[11px] text-stone-300 leading-relaxed font-serif italic">
+                      Thank you for using <span className="text-white font-semibold not-italic">S.O.L</span>! We hope this strip captures a moment worth keeping.
+                    </p>
+                    <p className="text-[9px] text-stone-500 uppercase tracking-widest">
+                      Share your experience with us
+                    </p>
+                    <a
+                      href="https://www.instagram.com/snap.of.love/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-90 text-white text-[10px] font-bold uppercase tracking-wider rounded-full transition-opacity cursor-pointer shadow-lg"
+                    >
+                      <Instagram className="w-3.5 h-3.5" />
+                      @snap.of.love
+                    </a>
+                  </div>
                 </div>
               </div>
             </aside>
