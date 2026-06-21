@@ -924,7 +924,7 @@ export default function Photobooth() {
                       href="https://www.instagram.com/snapoflove.id/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-90 text-white text-[10px] font-bold uppercase tracking-wider rounded-full transition-opacity cursor-pointer shadow-lg"
+                      className="inline-flex items-center gap-2 px-4.5 py-2 border border-[#333] hover:border-white hover:bg-white hover:text-black text-stone-300 text-[10px] font-bold uppercase tracking-wider rounded-full transition-all duration-300 cursor-pointer shadow-md"
                     >
                       <Instagram className="w-3.5 h-3.5" />
                       @snapoflove.id
