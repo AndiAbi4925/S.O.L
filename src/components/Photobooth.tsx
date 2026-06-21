@@ -608,6 +608,24 @@ export default function Photobooth() {
                     ))}
                   </div>
                 </section>
+
+                {/* 4. Camera Lens Effect */}
+                <section className="pt-4 border-t border-[#222]">
+                  <label className="text-[11px] uppercase tracking-widest text-[#888] font-semibold flex items-center gap-2 mb-2.5">
+                    <Maximize2 className="w-3.5 h-3.5 text-stone-400" /> Lens Distortion Effect
+                  </label>
+                  <select
+                    disabled={captureState === 'countdown' || captureState === 'capturing'}
+                    value={lensEffect}
+                    onChange={(e) => setLensEffect(e.target.value as LensEffectType)}
+                    className="w-full bg-[#171717] border border-[#222] text-xs font-mono py-2 px-2.5 text-white focus:outline-none focus:border-stone-500 rounded-xs cursor-pointer disabled:opacity-35"
+                  >
+                    <option value="none">Standard Lens</option>
+                    <option value="fisheye">Wide Fish-Eye</option>
+                    <option value="toycam">Retro Toy Cam</option>
+                    <option value="filmburn">Film Burn Flare</option>
+                  </select>
+                </section>
               </div>
 
               {/* Sidebar Action Button */}
@@ -648,6 +666,17 @@ export default function Photobooth() {
                   style={{ filter: currentFilter.style }}
                   className="w-full h-full object-cover transform -scale-x-100 transition-all duration-300"
                 />
+
+                {/* Viewfinder Lens Effect Overlays */}
+                {lensEffect === 'fisheye' && (
+                  <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(0,0,0,0)_48%,rgba(0,0,0,0.7)_90%)] border-[20px] border-black/85 rounded-full mix-blend-multiply z-20 transition-all duration-300" />
+                )}
+                {lensEffect === 'filmburn' && (
+                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-amber-500/15 via-transparent to-red-500/10 mix-blend-screen z-20 animate-pulse transition-all duration-300" style={{ animationDuration: '3s' }} />
+                )}
+                {lensEffect === 'toycam' && (
+                  <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(0,0,0,0)_68%,rgba(0,0,0,0.45)_98%)] z-20 transition-all duration-300" />
+                )}
 
                 {/* Animated Film grain live overlay */}
                 <div className="absolute inset-0 pointer-events-none opacity-[0.22] mix-blend-overlay z-15 bg-[radial-gradient(#fff_1.2px,transparent_1.2px)] [background-size:10px_10px]" />
@@ -846,20 +875,6 @@ export default function Photobooth() {
                     </button>
                   </div>
 
-                  {/* Camera Lens Effect selector */}
-                  <div className="space-y-1.5 pt-2 border-t border-white/5">
-                    <span className="text-[10px] text-stone-400">Camera Lens Effect</span>
-                    <select
-                      value={lensEffect}
-                      onChange={(e) => setLensEffect(e.target.value as LensEffectType)}
-                      className="w-full bg-[#171717] border border-[#222] text-xs font-mono py-2 px-2.5 text-white focus:outline-none focus:border-stone-500 rounded-xs cursor-pointer animate-in fade-in duration-200"
-                    >
-                      <option value="none">Standard Lens</option>
-                      <option value="fisheye">Wide Fish-Eye</option>
-                      <option value="toycam">Retro Toy Cam</option>
-                      <option value="filmburn">Film Burn Flare</option>
-                    </select>
-                  </div>
                 </section>
 
 
