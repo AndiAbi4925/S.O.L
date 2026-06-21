@@ -1,16 +1,6 @@
 import { format } from 'date-fns';
 import qrcode from 'qrcode-generator';
 
-export interface PlacedSticker {
-  id: string;
-  type: 'emoji' | 'text';
-  text: string;
-  x: number; // percentage (0-100)
-  y: number; // percentage (0-100)
-  scale: number;
-  rotation: number;
-}
-
 export interface LayoutDef {
   id: string;
   name: string;
@@ -277,8 +267,7 @@ export function renderStrip(
   showDate: boolean,
   frameIndex: number,
   themeId: string = 'alabaster',
-  filterId: FilterType = 'none',
-  stickers: PlacedSticker[] = []
+  filterId: FilterType = 'none'
 ): HTMLCanvasElement {
   const bgCanvas = document.createElement('canvas');
   bgCanvas.width = layout.width;
@@ -414,51 +403,6 @@ export function renderStrip(
     ctx.textAlign = 'right';
     ctx.fillText(theme.label, textX, textY);
     ctx.textAlign = 'left'; // reset
-  }
-
-  // Draw placed stickers on top of everything
-  if (stickers && stickers.length > 0) {
-    stickers.forEach((sticker) => {
-      ctx.save();
-      
-      const x = (sticker.x / 100) * layout.width;
-      const y = (sticker.y / 100) * layout.height;
-      
-      ctx.translate(x, y);
-      ctx.rotate((sticker.rotation * Math.PI) / 180);
-      
-      const baseFontSize = 48;
-      const fontSize = baseFontSize * sticker.scale;
-      
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      
-      if (sticker.type === 'text') {
-        ctx.font = `bold ${fontSize}px "Courier New", Courier, monospace`;
-        const textWidth = ctx.measureText(sticker.text).width;
-        const paddingX = fontSize * 0.4;
-        const paddingY = fontSize * 0.25;
-        
-        // Draw label tape background
-        ctx.fillStyle = theme.fontHex;
-        ctx.fillRect(
-          -textWidth / 2 - paddingX,
-          -fontSize / 2 - paddingY,
-          textWidth + paddingX * 2,
-          fontSize + paddingY * 2
-        );
-        
-        // Draw label text
-        ctx.fillStyle = theme.bgHex;
-        ctx.fillText(sticker.text, 0, 0);
-      } else {
-        // Draw Emoji
-        ctx.font = `${fontSize}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-        ctx.fillText(sticker.text, 0, 0);
-      }
-      
-      ctx.restore();
-    });
   }
 
   return bgCanvas;
