@@ -845,6 +845,21 @@ export default function Photobooth() {
                     </select>
                   </div>
 
+                  {/* Camera Lens Effect dropdown option */}
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] text-stone-400">Camera Lens Effect</span>
+                    <select
+                      value={lensEffect}
+                      onChange={(e) => setLensEffect(e.target.value as LensEffectType)}
+                      className="w-full bg-[#171717] border border-[#222] text-xs font-mono py-2 px-2.5 text-white focus:outline-none focus:border-stone-500 rounded-xs cursor-pointer"
+                    >
+                      <option value="none">Standard Lens</option>
+                      <option value="fisheye">Wide Fish-Eye</option>
+                      <option value="toycam">Retro Toy Cam</option>
+                      <option value="filmburn">Film Burn Flare</option>
+                    </select>
+                  </div>
+
                   <div className="space-y-2">
                     <div className="flex justify-between text-[11px]">
                       <span>Analog Film Grain</span>

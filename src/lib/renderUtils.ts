@@ -325,7 +325,6 @@ export function applyLensEffects(
 
     const cx = w / 2;
     const cy = h / 2;
-    // Calculate diagonal radius for normalization
     const maxR = Math.sqrt(cx * cx + cy * cy);
 
     const isFisheye = effect === 'fisheye';
@@ -336,27 +335,35 @@ export function applyLensEffects(
       for (let x = 0; x < w; x++) {
         const dx = x - cx;
         const dy = y - cy;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const theta = Math.atan2(dy, dx);
-        const rNorm = dist / maxR;
 
-        // Warp radius if fisheye, otherwise keep original flat grid
+        // Normalized coordinate relative to half-width/height (ellipse space)
+        const nx = dx / cx;
+        const ny = dy / cy;
+        const rNorm = Math.sqrt(nx * nx + ny * ny);
+
+        // Warp radius if fisheye, otherwise keep flat grid
         const warpedRNorm = isFisheye ? Math.pow(rNorm, distortionFactor) : rNorm;
 
-        // Radial offset chromatic shift (more pronounced near edges)
-        const shiftPixels = shiftScale * dist;
+        // Calculate warped dx and dy in pixels
+        const scaleMult = rNorm > 0 ? (warpedRNorm / rNorm) : 1;
+        const warpedDx = dx * scaleMult;
+        const warpedDy = dy * scaleMult;
 
-        // Red lookup coordinates (shifted slightly outwards along the angle)
-        const rx = cx + Math.cos(theta) * (warpedRNorm * maxR + shiftPixels);
-        const ry = cy + Math.sin(theta) * (warpedRNorm * maxR + shiftPixels);
+        // Radial offset chromatic shift (more pronounced near edges)
+        const shiftFactor = 1 + shiftScale * rNorm;
+        const shiftFactorInv = 1 - shiftScale * rNorm;
+
+        // Red lookup coordinates (shifted slightly outwards)
+        const rx = cx + warpedDx * shiftFactor;
+        const ry = cy + warpedDy * shiftFactor;
 
         // Green lookup coordinates (base/center)
-        const gx = cx + Math.cos(theta) * (warpedRNorm * maxR);
-        const gy = cy + Math.sin(theta) * (warpedRNorm * maxR);
+        const gx = cx + warpedDx;
+        const gy = cy + warpedDy;
 
-        // Blue lookup coordinates (shifted slightly inwards along the angle)
-        const bx = cx + Math.cos(theta) * (warpedRNorm * maxR - shiftPixels);
-        const by = cy + Math.sin(theta) * (warpedRNorm * maxR - shiftPixels);
+        // Blue lookup coordinates (shifted slightly inwards)
+        const bx = cx + warpedDx * shiftFactorInv;
+        const by = cy + warpedDy * shiftFactorInv;
 
         const destIdx = (y * w + x) * 4;
 
@@ -384,11 +391,24 @@ export function applyLensEffects(
           dstData[destIdx + 2] = 0;
         }
 
-        // 4. Alpha (Opaque)
-        // circular alpha softening for the outer ring boundary
-        if (isFisheye && rNorm > 0.88) {
-          const fade = Math.max(0, 1 - (rNorm - 0.88) / 0.12);
-          dstData[destIdx + 3] = Math.floor(fade * 255);
+        // 4. Alpha & Color masking for boundary
+        if (isFisheye) {
+          if (rNorm > 0.95) {
+            // Outside the fish-eye lens circle, make it opaque black
+            dstData[destIdx] = 0;
+            dstData[destIdx + 1] = 0;
+            dstData[destIdx + 2] = 0;
+            dstData[destIdx + 3] = 255;
+          } else if (rNorm > 0.82) {
+            // Apply a transition to black (simulating the border and vignette)
+            const factor = (0.95 - rNorm) / 0.13; // 1 to 0
+            dstData[destIdx] = Math.floor(dstData[destIdx] * factor);
+            dstData[destIdx + 1] = Math.floor(dstData[destIdx + 1] * factor);
+            dstData[destIdx + 2] = Math.floor(dstData[destIdx + 2] * factor);
+            dstData[destIdx + 3] = 255;
+          } else {
+            dstData[destIdx + 3] = 255;
+          }
         } else {
           dstData[destIdx + 3] = 255;
         }
@@ -397,14 +417,14 @@ export function applyLensEffects(
 
     dstCtx.putImageData(dstImgData, 0, 0);
 
-    // Overlay vignette shadow & 3D lens highlight reflections for fisheye camera
+    // Apply overlays (radial vignettes & glass reflections)
     if (isFisheye) {
       dstCtx.save();
       // Outer lens border vignette
-      const vignette = dstCtx.createRadialGradient(cx, cy, w * 0.35, cx, cy, maxR);
+      const vignette = dstCtx.createRadialGradient(cx, cy, Math.min(cx, cy) * 0.8, cx, cy, maxR);
       vignette.addColorStop(0, 'rgba(0,0,0,0)');
-      vignette.addColorStop(0.7, 'rgba(0,0,0,0.35)');
-      vignette.addColorStop(1, 'rgba(0,0,0,0.92)');
+      vignette.addColorStop(0.7, 'rgba(0,0,0,0.3)');
+      vignette.addColorStop(1, 'rgba(0,0,0,0.85)');
       dstCtx.fillStyle = vignette;
       dstCtx.fillRect(0, 0, w, h);
 
@@ -413,6 +433,17 @@ export function applyLensEffects(
       glass.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
       glass.addColorStop(1, 'rgba(255, 255, 255, 0)');
       dstCtx.fillStyle = glass;
+      dstCtx.fillRect(0, 0, w, h);
+      dstCtx.restore();
+    }
+
+    if (effect === 'toycam') {
+      dstCtx.save();
+      // Toycam vignette gradient matching the viewfinder style
+      const vignette = dstCtx.createRadialGradient(cx, cy, Math.min(cx, cy) * 0.85, cx, cy, maxR);
+      vignette.addColorStop(0, 'rgba(0,0,0,0)');
+      vignette.addColorStop(1, 'rgba(0,0,0,0.45)');
+      dstCtx.fillStyle = vignette;
       dstCtx.fillRect(0, 0, w, h);
       dstCtx.restore();
     }
