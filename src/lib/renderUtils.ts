@@ -1,6 +1,8 @@
 import { format } from 'date-fns';
 import qrcode from 'qrcode-generator';
 
+export type LensEffectType = 'none' | 'fisheye' | 'toycam' | 'filmburn';
+
 export interface LayoutDef {
   id: string;
   name: string;
@@ -260,6 +262,167 @@ function applyManualFilter(
   ctx.putImageData(imgData, x, y);
 }
 
+/**
+ * Apply camera lens distortion and effects to a photo slot canvas
+ */
+export function applyLensEffects(
+  srcCanvas: HTMLCanvasElement,
+  effect: LensEffectType
+): HTMLCanvasElement {
+  if (effect === 'none') return srcCanvas;
+
+  const w = srcCanvas.width;
+  const h = srcCanvas.height;
+
+  // Create a destination canvas
+  const dstCanvas = document.createElement('canvas');
+  dstCanvas.width = w;
+  dstCanvas.height = h;
+  const dstCtx = dstCanvas.getContext('2d');
+  if (!dstCtx) return srcCanvas;
+
+  const srcCtx = srcCanvas.getContext('2d');
+  if (!srcCtx) return srcCanvas;
+
+  // 1. Film Burn Light Leaks
+  if (effect === 'filmburn') {
+    // Copy the original canvas
+    dstCtx.drawImage(srcCanvas, 0, 0);
+
+    // Apply color grading (warm sepia multiplication layer)
+    dstCtx.fillStyle = 'rgba(240, 180, 0, 0.08)';
+    dstCtx.globalCompositeOperation = 'multiply';
+    dstCtx.fillRect(0, 0, w, h);
+
+    // Light Leak 1: Soft orange/red flare in top-left
+    const grad1 = dstCtx.createRadialGradient(0, 0, 0, 0, 0, w * 0.7);
+    grad1.addColorStop(0, 'rgba(255, 65, 0, 0.45)');  // fiery orange
+    grad1.addColorStop(0.5, 'rgba(255, 0, 100, 0.18)'); // soft neon magenta
+    grad1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    dstCtx.fillStyle = grad1;
+    dstCtx.globalCompositeOperation = 'screen';
+    dstCtx.fillRect(0, 0, w, h);
+
+    // Light Leak 2: Warm yellow flare bottom-right
+    const grad2 = dstCtx.createRadialGradient(w, h, 0, w, h, w * 0.55);
+    grad2.addColorStop(0, 'rgba(255, 200, 0, 0.35)');  // sunny yellow
+    grad2.addColorStop(0.6, 'rgba(255, 60, 0, 0.12)');  // warm red glow
+    grad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    dstCtx.fillStyle = grad2;
+    dstCtx.fillRect(0, 0, w, h);
+
+    dstCtx.globalCompositeOperation = 'source-over'; // reset
+    return dstCanvas;
+  }
+
+  // 2. Toy Cam & Fish-eye (require pixel coordinate distortion)
+  if (effect === 'fisheye' || effect === 'toycam') {
+    const srcImgData = srcCtx.getImageData(0, 0, w, h);
+    const srcData = srcImgData.data;
+
+    const dstImgData = dstCtx.createImageData(w, h);
+    const dstData = dstImgData.data;
+
+    const cx = w / 2;
+    const cy = h / 2;
+    // Calculate diagonal radius for normalization
+    const maxR = Math.sqrt(cx * cx + cy * cy);
+
+    const isFisheye = effect === 'fisheye';
+    const distortionFactor = 1.35; // Bulge power
+    const shiftScale = 0.012; // Chromatic aberration shift factor
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const dx = x - cx;
+        const dy = y - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const theta = Math.atan2(dy, dx);
+        const rNorm = dist / maxR;
+
+        // Warp radius if fisheye, otherwise keep original flat grid
+        const warpedRNorm = isFisheye ? Math.pow(rNorm, distortionFactor) : rNorm;
+
+        // Radial offset chromatic shift (more pronounced near edges)
+        const shiftPixels = shiftScale * dist;
+
+        // Red lookup coordinates (shifted slightly outwards along the angle)
+        const rx = cx + Math.cos(theta) * (warpedRNorm * maxR + shiftPixels);
+        const ry = cy + Math.sin(theta) * (warpedRNorm * maxR + shiftPixels);
+
+        // Green lookup coordinates (base/center)
+        const gx = cx + Math.cos(theta) * (warpedRNorm * maxR);
+        const gy = cy + Math.sin(theta) * (warpedRNorm * maxR);
+
+        // Blue lookup coordinates (shifted slightly inwards along the angle)
+        const bx = cx + Math.cos(theta) * (warpedRNorm * maxR - shiftPixels);
+        const by = cy + Math.sin(theta) * (warpedRNorm * maxR - shiftPixels);
+
+        const destIdx = (y * w + x) * 4;
+
+        // 1. Red Channel lookup
+        if (rx >= 0 && rx < w && ry >= 0 && ry < h) {
+          const sIdx = (Math.floor(ry) * w + Math.floor(rx)) * 4;
+          dstData[destIdx] = srcData[sIdx];
+        } else {
+          dstData[destIdx] = 0; // Black vignette boundary
+        }
+
+        // 2. Green Channel lookup
+        if (gx >= 0 && gx < w && gy >= 0 && gy < h) {
+          const sIdx = (Math.floor(gy) * w + Math.floor(gx)) * 4;
+          dstData[destIdx + 1] = srcData[sIdx + 1];
+        } else {
+          dstData[destIdx + 1] = 0;
+        }
+
+        // 3. Blue Channel lookup
+        if (bx >= 0 && bx < w && by >= 0 && by < h) {
+          const sIdx = (Math.floor(by) * w + Math.floor(bx)) * 4;
+          dstData[destIdx + 2] = srcData[sIdx + 2];
+        } else {
+          dstData[destIdx + 2] = 0;
+        }
+
+        // 4. Alpha (Opaque)
+        // circular alpha softening for the outer ring boundary
+        if (isFisheye && rNorm > 0.88) {
+          const fade = Math.max(0, 1 - (rNorm - 0.88) / 0.12);
+          dstData[destIdx + 3] = Math.floor(fade * 255);
+        } else {
+          dstData[destIdx + 3] = 255;
+        }
+      }
+    }
+
+    dstCtx.putImageData(dstImgData, 0, 0);
+
+    // Overlay vignette shadow & 3D lens highlight reflections for fisheye camera
+    if (isFisheye) {
+      dstCtx.save();
+      // Outer lens border vignette
+      const vignette = dstCtx.createRadialGradient(cx, cy, w * 0.35, cx, cy, maxR);
+      vignette.addColorStop(0, 'rgba(0,0,0,0)');
+      vignette.addColorStop(0.7, 'rgba(0,0,0,0.35)');
+      vignette.addColorStop(1, 'rgba(0,0,0,0.92)');
+      dstCtx.fillStyle = vignette;
+      dstCtx.fillRect(0, 0, w, h);
+
+      // Spherical glass reflections
+      const glass = dstCtx.createRadialGradient(cx - w * 0.15, cy - h * 0.15, 0, cx - w * 0.15, cy - h * 0.15, w * 0.5);
+      glass.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
+      glass.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      dstCtx.fillStyle = glass;
+      dstCtx.fillRect(0, 0, w, h);
+      dstCtx.restore();
+    }
+
+    return dstCanvas;
+  }
+
+  return srcCanvas;
+}
+
 export function renderStrip(
   photos: HTMLCanvasElement[][],
   layout: LayoutDef,
@@ -267,7 +430,8 @@ export function renderStrip(
   showDate: boolean,
   frameIndex: number,
   themeId: string = 'alabaster',
-  filterId: FilterType = 'none'
+  filterId: FilterType = 'none',
+  lensEffect: LensEffectType = 'none'
 ): HTMLCanvasElement {
   const bgCanvas = document.createElement('canvas');
   bgCanvas.width = layout.width;
@@ -306,23 +470,32 @@ export function renderStrip(
       ctx.fillStyle = theme.borderHex;
       ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
 
-      // Save context state to apply standard photo-level filter and clip correctly
-      ctx.save();
-      
-      // Hardware accelerated filter application
-      const activeFilter = VISUAL_FILTERS[filterId] || VISUAL_FILTERS.none;
-      if (activeFilter.canvasFilter !== 'none') {
-        if ('filter' in ctx) {
-          ctx.filter = activeFilter.canvasFilter;
+      // Create a temporary canvas for this photo slot to apply filters & lens distortion cleanly
+      const slotCvs = document.createElement('canvas');
+      slotCvs.width = slot.w;
+      slotCvs.height = slot.h;
+      const slotCtx = slotCvs.getContext('2d');
+
+      if (slotCtx) {
+        // Hardware accelerated filter application inside temporary slot canvas
+        const activeFilter = VISUAL_FILTERS[filterId] || VISUAL_FILTERS.none;
+        if (activeFilter.canvasFilter !== 'none' && ('filter' in slotCtx)) {
+          slotCtx.filter = activeFilter.canvasFilter;
         }
-      }
 
-      ctx.drawImage(img, sx, sy, sw, sh, slot.x, slot.y, slot.w, slot.h);
-      ctx.restore();
+        // Draw cropped photo onto the slot canvas
+        slotCtx.drawImage(img, sx, sy, sw, sh, 0, 0, slot.w, slot.h);
 
-      // Fallback for Safari/iOS browsers that do not support native Canvas filters
-      if (!('filter' in ctx) && filterId !== 'none') {
-        applyManualFilter(ctx, slot.x, slot.y, slot.w, slot.h, filterId);
+        // Fallback for Safari/iOS browsers that do not support native Canvas filters
+        if (!('filter' in slotCtx) && filterId !== 'none') {
+          applyManualFilter(slotCtx, 0, 0, slot.w, slot.h, filterId);
+        }
+
+        // Apply advanced camera lens effects (Fish-eye distortion, aberration, light leaks)
+        const processedSlotCvs = applyLensEffects(slotCvs, lensEffect);
+
+        // Draw final processed photo slot onto the main photo strip canvas
+        ctx.drawImage(processedSlotCvs, slot.x, slot.y);
       }
     } else {
       // Empty slot placeholder

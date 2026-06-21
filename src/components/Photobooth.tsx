@@ -24,7 +24,8 @@ import {
   CardTheme,
   VISUAL_FILTERS,
   FilterType,
-  renderStrip
+  renderStrip,
+  LensEffectType
 } from '../lib/renderUtils';
 import { createGifExporter } from '../lib/exportUtils';
 import { playTick, playShutter, playDing } from '../lib/audioUtils';
@@ -122,6 +123,7 @@ export default function Photobooth() {
   const [grainIntensity, setGrainIntensity] = useState<number>(30);
   const [showDate, setShowDate] = useState<boolean>(true);
   const [photoDelay, setPhotoDelay] = useState<number>(3); // custom delay in seconds
+  const [lensEffect, setLensEffect] = useState<LensEffectType>('none');
 
   // Camera & Capture Session State
   const [isCameraReady, setIsCameraReady] = useState(false);
@@ -270,11 +272,12 @@ export default function Photobooth() {
         showDate,
         selectedPhotoIndex,
         activeThemeId,
-        activeFilterId
+        activeFilterId,
+        lensEffect
       );
       setPreviewCanvasDataUrl(cvs.toDataURL('image/jpeg', 0.95));
     }
-  }, [screen, capturedPhotos, activeLayout, grainIntensity, showDate, selectedPhotoIndex, activeThemeId, activeFilterId]);
+  }, [screen, capturedPhotos, activeLayout, grainIntensity, showDate, selectedPhotoIndex, activeThemeId, activeFilterId, lensEffect]);
 
   // High quality exporters
   const handleExport = async (format: 'jpg' | 'png' | 'gif') => {
@@ -293,7 +296,8 @@ export default function Photobooth() {
           showDate,
           selectedPhotoIndex,
           activeThemeId,
-          activeFilterId
+          activeFilterId,
+          lensEffect
         );
         const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
         url = cvs.toDataURL(mime, 0.95);
@@ -310,7 +314,8 @@ export default function Photobooth() {
               showDate,
               i,
               activeThemeId,
-              activeFilterId
+              activeFilterId,
+              lensEffect
             )
           );
         }
@@ -351,6 +356,7 @@ export default function Photobooth() {
     setCapturedPhotos([]);
     setCaptureState('idle');
     setPreviewCanvasDataUrl(null);
+    setLensEffect('none');
     setScreen('active');
   };
 
@@ -358,6 +364,7 @@ export default function Photobooth() {
     setCapturedPhotos([]);
     setCaptureState('idle');
     setPreviewCanvasDataUrl(null);
+    setLensEffect('none');
     setScreen('landing');
   };
 
@@ -837,6 +844,21 @@ export default function Photobooth() {
                         showDate ? "bg-black translate-x-5" : "bg-[#666]"
                       )} />
                     </button>
+                  </div>
+
+                  {/* Camera Lens Effect selector */}
+                  <div className="space-y-1.5 pt-2 border-t border-white/5">
+                    <span className="text-[10px] text-stone-400">Camera Lens Effect</span>
+                    <select
+                      value={lensEffect}
+                      onChange={(e) => setLensEffect(e.target.value as LensEffectType)}
+                      className="w-full bg-[#171717] border border-[#222] text-xs font-mono py-2 px-2.5 text-white focus:outline-none focus:border-stone-500 rounded-xs cursor-pointer animate-in fade-in duration-200"
+                    >
+                      <option value="none">Standard Lens</option>
+                      <option value="fisheye">Wide Fish-Eye</option>
+                      <option value="toycam">Retro Toy Cam</option>
+                      <option value="filmburn">Film Burn Flare</option>
+                    </select>
                   </div>
                 </section>
 
