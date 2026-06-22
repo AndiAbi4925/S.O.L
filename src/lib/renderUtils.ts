@@ -8,7 +8,7 @@ export interface LayoutDef {
   name: string;
   width: number;
   height: number;
-  slots: { x: number; y: number; w: number; h: number }[];
+  slots: { x: number; y: number; w: number; h: number; rotation?: number }[];
   datePos: { x: number; y: number };
 }
 
@@ -135,6 +135,19 @@ export const LAYOUTS: Record<string, LayoutDef> = {
       { x: 630, y: 60, w: 510, h: 380 },
     ],
     datePos: { x: 60, y: 540 },
+  },
+  'scrapbook': {
+    id: 'scrapbook',
+    name: 'Retro Scrapbook',
+    width: 700,
+    height: 1600,
+    slots: [
+      { x: 90, y: 70, w: 520, h: 340, rotation: -3 },
+      { x: 90, y: 440, w: 520, h: 340, rotation: 2.5 },
+      { x: 90, y: 810, w: 520, h: 340, rotation: -1.5 },
+      { x: 90, y: 1180, w: 520, h: 340, rotation: 3 },
+    ],
+    datePos: { x: 90, y: 1560 },
   },
 };
 
@@ -466,9 +479,23 @@ export function renderStrip(
         sy = (img.height - sh) / 2;
       }
 
-      // Draw backdrop border/accent first
-      ctx.fillStyle = theme.borderHex;
-      ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
+      // Draw backdrop border/accent first, then photo with optional rotation and shadow
+      ctx.save();
+      if (slot.rotation) {
+        ctx.translate(slot.x + slot.w / 2, slot.y + slot.h / 2);
+        ctx.rotate((slot.rotation * Math.PI) / 180);
+        
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+        ctx.shadowBlur = 14;
+        ctx.shadowOffsetX = 3;
+        ctx.shadowOffsetY = 6;
+        
+        ctx.fillStyle = theme.borderHex;
+        ctx.fillRect(-slot.w / 2, -slot.h / 2, slot.w, slot.h);
+      } else {
+        ctx.fillStyle = theme.borderHex;
+        ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
+      }
 
       // Create a temporary canvas for this photo slot to apply filters & lens distortion cleanly
       const slotCvs = document.createElement('canvas');
@@ -495,12 +522,26 @@ export function renderStrip(
         const processedSlotCvs = applyLensEffects(slotCvs, lensEffect);
 
         // Draw final processed photo slot onto the main photo strip canvas
-        ctx.drawImage(processedSlotCvs, slot.x, slot.y);
+        if (slot.rotation) {
+          ctx.drawImage(processedSlotCvs, -slot.w / 2, -slot.h / 2);
+        } else {
+          ctx.drawImage(processedSlotCvs, slot.x, slot.y);
+        }
       }
+      ctx.restore();
     } else {
       // Empty slot placeholder
-      ctx.fillStyle = theme.borderHex;
-      ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
+      if (slot.rotation) {
+        ctx.save();
+        ctx.translate(slot.x + slot.w / 2, slot.y + slot.h / 2);
+        ctx.rotate((slot.rotation * Math.PI) / 180);
+        ctx.fillStyle = theme.borderHex;
+        ctx.fillRect(-slot.w / 2, -slot.h / 2, slot.w, slot.h);
+        ctx.restore();
+      } else {
+        ctx.fillStyle = theme.borderHex;
+        ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
+      }
     }
   });
 
@@ -510,7 +551,13 @@ export function renderStrip(
       if (photos[idx] && photos[idx][frameIndex]) {
         ctx.save();
         ctx.beginPath();
-        ctx.rect(slot.x, slot.y, slot.w, slot.h);
+        if (slot.rotation) {
+          ctx.translate(slot.x + slot.w / 2, slot.y + slot.h / 2);
+          ctx.rotate((slot.rotation * Math.PI) / 180);
+          ctx.rect(-slot.w / 2, -slot.h / 2, slot.w, slot.h);
+        } else {
+          ctx.rect(slot.x, slot.y, slot.w, slot.h);
+        }
         ctx.clip();
         drawGrain(ctx, layout.width, layout.height, grain);
         ctx.restore();

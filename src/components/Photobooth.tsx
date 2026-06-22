@@ -13,7 +13,11 @@ import {
   Eye,
   Smile,
   ShieldCheck,
-  Instagram
+  Instagram,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -28,7 +32,7 @@ import {
   LensEffectType
 } from '../lib/renderUtils';
 import { createGifExporter } from '../lib/exportUtils';
-import { playTick, playShutter, playDing } from '../lib/audioUtils';
+import { playTick, playShutter, playDing, startLofiBgm, stopLofiBgm } from '../lib/audioUtils';
 
 type ScreenState = 'landing' | 'active' | 'review';
 type CapturingState = 'idle' | 'countdown' | 'capturing' | 'completed';
@@ -124,6 +128,18 @@ export default function Photobooth() {
   const [showDate, setShowDate] = useState<boolean>(true);
   const [photoDelay, setPhotoDelay] = useState<number>(3); // custom delay in seconds
   const [lensEffect, setLensEffect] = useState<LensEffectType>('none');
+  const [isBgmPlaying, setIsBgmPlaying] = useState<boolean>(false);
+  const [isAnimatedPreview, setIsAnimatedPreview] = useState<boolean>(false);
+
+  const toggleBgm = () => {
+    if (isBgmPlaying) {
+      stopLofiBgm();
+      setIsBgmPlaying(false);
+    } else {
+      startLofiBgm();
+      setIsBgmPlaying(true);
+    }
+  };
 
   // Camera & Capture Session State
   const [isCameraReady, setIsCameraReady] = useState(false);
@@ -279,6 +295,19 @@ export default function Photobooth() {
     }
   }, [screen, capturedPhotos, activeLayout, grainIntensity, showDate, selectedPhotoIndex, activeThemeId, activeFilterId, lensEffect]);
 
+  // Animated "Live" Preview cycling effect
+  useEffect(() => {
+    let interval: any = null;
+    if (screen === 'review' && isAnimatedPreview) {
+      interval = setInterval(() => {
+        setSelectedPhotoIndex((prev) => (prev + 1) % 5);
+      }, 130);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [screen, isAnimatedPreview]);
+
   // High quality exporters
   const handleExport = async (format: 'jpg' | 'png' | 'gif') => {
     if (!capturedPhotos.length) return;
@@ -357,6 +386,10 @@ export default function Photobooth() {
     setCaptureState('idle');
     setPreviewCanvasDataUrl(null);
     setLensEffect('none');
+    stopLofiBgm();
+    setIsBgmPlaying(false);
+    setIsAnimatedPreview(false);
+    setSelectedPhotoIndex(2);
     setScreen('active');
   };
 
@@ -365,11 +398,13 @@ export default function Photobooth() {
     setCaptureState('idle');
     setPreviewCanvasDataUrl(null);
     setLensEffect('none');
+    setIsAnimatedPreview(false);
+    setSelectedPhotoIndex(2);
     setScreen('landing');
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#080808] text-[#e0e0e0] font-sans flex flex-col items-center justify-center select-none relative md:p-4">
+    <div className="h-[100dvh] w-screen overflow-hidden bg-[#080808] text-[#e0e0e0] font-sans flex flex-col items-center justify-center select-none relative md:p-4">
 
       {/* Background Ambience Light Glows (Corner Edges) */}
       <div className="absolute -top-[200px] -left-[200px] w-[500px] h-[500px] bg-[#8e1616] rounded-full blur-[140px] pointer-events-none z-0 animate-ambient-1" />
@@ -416,17 +451,70 @@ export default function Photobooth() {
                 </div>
               </div>
 
-              {/* Start CTA */}
-              <div>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={startNewSession}
-                  className="px-8 py-5 bg-white text-black hover:bg-stone-100 rounded-none text-xs font-bold uppercase tracking-[0.3em] shadow-xl flex items-center justify-center gap-3 group transition-colors cursor-pointer"
-                >
-                  <Camera className="w-4 h-4 transition-transform group-hover:rotate-12" />
-                  Enter Studio
-                </motion.button>
+              {/* Start CTA & BGM Player */}
+              <div className="flex flex-col gap-6">
+                <div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={startNewSession}
+                    className="px-8 py-5 bg-white text-black hover:bg-stone-100 rounded-none text-xs font-bold uppercase tracking-[0.3em] shadow-xl flex items-center justify-center gap-3 group transition-colors cursor-pointer animate-in fade-in duration-500"
+                  >
+                    <Camera className="w-4 h-4 transition-transform group-hover:rotate-12" />
+                    Enter Studio
+                  </motion.button>
+                </div>
+
+                {/* Cassette BGM Deck */}
+                <div className="pt-6 border-t border-[#222]/80 max-w-xs">
+                  <div className="bg-[#111] border border-[#222] rounded-lg p-3.5 flex items-center justify-between gap-4 shadow-2xl relative overflow-hidden select-none">
+                    {/* Retro tape stripes */}
+                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-amber-500 to-indigo-500 opacity-20" />
+                    
+                    {/* Cassette layout reels */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="flex items-center justify-center relative w-11 h-7 bg-stone-900 border border-stone-800 rounded-xs overflow-hidden">
+                        {/* Spindle Reels */}
+                        <div className="flex gap-2">
+                          <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
+                            <div className="w-1 h-1 bg-stone-500 rounded-full" />
+                          </div>
+                          <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
+                            <div className="w-1 h-1 bg-stone-500 rounded-full" />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col justify-center text-left">
+                        <p className="text-[9px] uppercase font-mono tracking-wider text-stone-500">Lo-Fi Ambient</p>
+                        <p className="text-[10px] uppercase font-bold tracking-widest text-[#eaeaea] font-mono">SOL TAPE 01</p>
+                      </div>
+                    </div>
+
+                    {/* Cassette deck control buttons */}
+                    <div className="flex items-center gap-2">
+                      {/* Active Led indicator */}
+                      <div className="flex items-center justify-center pr-1.5">
+                        <span className="relative flex h-2 w-2">
+                          <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-red-600", !isBgmPlaying && "hidden")} />
+                          <span className={cn("relative inline-flex rounded-full h-2 w-2", isBgmPlaying ? "bg-red-600" : "bg-stone-800")} />
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={toggleBgm}
+                        className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center border transition-all cursor-pointer",
+                          isBgmPlaying
+                            ? "bg-white text-black border-white hover:bg-stone-200"
+                            : "bg-transparent text-stone-400 border-stone-800 hover:text-white hover:border-[#444] hover:bg-white/5"
+                        )}
+                      >
+                        {isBgmPlaying ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -496,10 +584,10 @@ export default function Photobooth() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="w-full min-h-screen md:min-h-0 md:h-[92vh] max-w-7xl flex flex-col md:flex-row bg-[#0c0c0c] border md:border-8 border-[#1a1a1a] shadow-3xl z-10 relative overflow-hidden shrink-0"
+            className="w-full min-h-[100dvh] md:min-h-0 md:h-[92vh] max-w-7xl flex flex-col md:flex-row bg-[#0c0c0c] border md:border-8 border-[#1a1a1a] shadow-3xl z-10 relative overflow-hidden shrink-0"
           >
             {/* BACK TO MENU / BRAND HEADER BAR (MOBILE) */}
-            <div className="md:hidden flex justify-between items-center px-6 py-4 bg-[#0f0f0f] border-b border-[#222]">
+            <div className="md:hidden flex justify-between items-center px-6 py-4 bg-[#0f0f0f] border-b border-[#222] order-1">
               <button
                 onClick={returnToMenu}
                 className="text-xs uppercase tracking-wider text-stone-400 hover:text-white flex items-center gap-1.5 font-mono"
@@ -511,7 +599,7 @@ export default function Photobooth() {
             </div>
 
             {/* Workspace Sidebar controls */}
-            <aside className="w-full md:w-80 bg-[#0f0f0f] md:border-r border-[#2a2a2a] p-6 md:p-8 flex flex-col shrink-0 overflow-y-auto">
+            <aside className="w-full md:w-80 bg-[#0f0f0f] md:border-r border-[#2a2a2a] p-6 md:p-8 flex flex-col shrink-0 overflow-y-auto order-3 md:order-1">
 
               {/* Back to main landing */}
               <button
@@ -556,6 +644,12 @@ export default function Photobooth() {
                         )}
                         {layout.id === '1x1' && <div className="w-4 h-4 border border-current opacity-60 bg-current/10"></div>}
                         {layout.id === '2x1' && <div className="w-5 h-2.5 border border-current opacity-60"></div>}
+                        {layout.id === 'scrapbook' && (
+                          <div className="relative w-4 h-5 opacity-60">
+                            <div className="absolute top-0.5 left-0.5 w-2.5 h-3.5 border border-current transform -rotate-12 bg-current/5"></div>
+                            <div className="absolute top-1 left-2 w-2.5 h-3.5 border border-current transform rotate-12 bg-current/5"></div>
+                          </div>
+                        )}
                         <span className="text-[9px] uppercase font-mono tracking-tighter mt-1">{layout.id}</span>
                       </button>
                     ))}
@@ -624,7 +718,7 @@ export default function Photobooth() {
             </aside>
 
             {/* Live Feed Video Viewport */}
-            <main className="flex-grow relative flex items-center justify-center p-4 md:p-12 bg-[#080808] overflow-hidden min-h-[400px]">
+            <main className="flex-grow relative flex items-center justify-center p-4 md:p-12 bg-[#080808] overflow-hidden min-h-[300px] md:min-h-[400px] order-2 md:order-2">
               {/* Vignette Shadow Overlay */}
               <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.95)] z-20" />
 
@@ -737,7 +831,7 @@ export default function Photobooth() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="w-full min-h-screen md:min-h-0 md:h-[92vh] max-w-7xl flex flex-col md:flex-row bg-[#0c0c0c] border md:border-8 border-[#1a1a1a] shadow-3xl z-10 relative overflow-hidden shrink-0 animate-in fade-in duration-300"
+            className="w-full min-h-[100dvh] md:min-h-0 md:h-[92vh] max-w-7xl flex flex-col-reverse md:flex-row bg-[#0c0c0c] border md:border-8 border-[#1a1a1a] shadow-3xl z-10 relative overflow-hidden shrink-0 animate-in fade-in duration-300"
           >
             {/* Sidebar controls for POST-PROCESSING */}
             <aside className="w-full md:w-80 bg-[#0f0f0f] md:border-r border-[#2a2a2a] p-6 md:p-8 flex flex-col shrink-0 overflow-y-auto">
@@ -773,16 +867,61 @@ export default function Photobooth() {
                   </div>
                 </section>
 
+                {/* Display Mode (Classic Print vs. Live Digital) */}
+                <section className="pt-4 border-t border-[#222]">
+                  <label className="text-[11px] uppercase tracking-widest text-[#888] font-semibold block mb-2.5">
+                    Display Mode
+                  </label>
+                  <div className="relative bg-[#171717] border border-[#222] p-1 rounded-full flex items-center select-none">
+                    {/* Sliding background pill */}
+                    <div
+                      className="absolute top-1 bottom-1 left-1 rounded-full bg-white transition-all duration-300 ease-out"
+                      style={{
+                        width: 'calc(50% - 4px)',
+                        transform: isAnimatedPreview ? 'translateX(100%)' : 'translateX(0%)',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsAnimatedPreview(false)}
+                      className={cn(
+                        "relative flex-1 py-1.5 text-center text-[10px] font-bold uppercase tracking-wider transition-colors duration-200 z-10 cursor-pointer rounded-full",
+                        !isAnimatedPreview ? "text-black" : "text-stone-400 hover:text-stone-200"
+                      )}
+                    >
+                      Classic Print
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsAnimatedPreview(true)}
+                      className={cn(
+                        "relative flex-1 py-1.5 text-center text-[10px] font-bold uppercase tracking-wider transition-colors duration-200 z-10 cursor-pointer rounded-full",
+                        isAnimatedPreview ? "text-black" : "text-stone-400 hover:text-stone-200"
+                      )}
+                    >
+                      Live Digital
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-[#555] mt-2 font-serif italic">
+                    {isAnimatedPreview
+                      ? "Live Digital: Auto-cycling photo frames to simulate a vintage animated loop."
+                      : "Classic Print: A static high-res photo composite, ready for print/export."}
+                  </p>
+                </section>
+
                 {/* 2. Captured Burst Index Selection */}
                 <section className="pt-4 border-t border-[#222]">
                   <div className="flex justify-between items-center mb-2">
                     <label className="text-[11px] uppercase tracking-widest text-[#888] font-semibold block">Select Burst Motion Frame</label>
-                    <span className="text-[10px] font-mono text-stone-500">Frame #{selectedPhotoIndex + 1}</span>
+                    <span className="text-[10px] font-mono text-stone-500">
+                      {isAnimatedPreview ? "Auto-cycling" : `Frame #${selectedPhotoIndex + 1}`}
+                    </span>
                   </div>
-                  <div className="grid grid-cols-5 gap-1.5">
+                  <div className={cn("grid grid-cols-5 gap-1.5 transition-opacity duration-200", isAnimatedPreview && "opacity-40 pointer-events-none")}>
                     {[0, 1, 2, 3, 4].map((idx) => (
                       <button
                         key={idx}
+                        disabled={isAnimatedPreview}
                         onClick={() => setSelectedPhotoIndex(idx)}
                         className={cn(
                           "py-2 text-[10px] font-mono border transition-all cursor-pointer rounded-xs",
@@ -935,7 +1074,7 @@ export default function Photobooth() {
             </aside>
 
             {/* High-res Rendered Specimen Preview */}
-            <main className="flex-grow relative flex items-center justify-center p-4 md:p-12 bg-[#080808] overflow-hidden min-h-[450px]">
+            <main className="flex-grow relative flex items-center justify-center p-4 md:p-12 bg-[#080808] overflow-hidden min-h-[350px] md:min-h-[450px]">
               {/* Vignette Shadow Overlay */}
               <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.95)] z-20" />
 
