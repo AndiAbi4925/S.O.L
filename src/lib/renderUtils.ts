@@ -193,7 +193,7 @@ export function drawGrain(
   const pattern = ctx.createPattern(noiseCanvas, 'repeat');
   if (pattern) {
     ctx.fillStyle = pattern;
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(-width, -height, width * 2, height * 2);
   }
 }
 

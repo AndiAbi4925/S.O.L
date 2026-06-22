@@ -130,6 +130,7 @@ export default function Photobooth() {
   const [lensEffect, setLensEffect] = useState<LensEffectType>('none');
   const [isBgmPlaying, setIsBgmPlaying] = useState<boolean>(false);
   const [isAnimatedPreview, setIsAnimatedPreview] = useState<boolean>(false);
+  const [showThankYouPopup, setShowThankYouPopup] = useState<boolean>(false);
 
   const toggleBgm = () => {
     if (isBgmPlaying) {
@@ -374,6 +375,7 @@ export default function Photobooth() {
       link.click();
       document.body.removeChild(link);
       playDing();
+      setShowThankYouPopup(true);
     } catch (e) {
       console.error('Export error', e);
     } finally {
@@ -386,8 +388,6 @@ export default function Photobooth() {
     setCaptureState('idle');
     setPreviewCanvasDataUrl(null);
     setLensEffect('none');
-    stopLofiBgm();
-    setIsBgmPlaying(false);
     setIsAnimatedPreview(false);
     setSelectedPhotoIndex(2);
     setScreen('active');
@@ -715,22 +715,61 @@ export default function Photobooth() {
                   {captureState === 'idle' ? 'Start Session' : 'Capturing...'}
                 </button>
               </div>
+
+              {/* Music Box Widget (Available on Screen 2) */}
+              <div className="mt-6 pt-5 border-t border-[#222]/80">
+                <div className="bg-[#111] border border-[#222] rounded-lg p-3.5 flex items-center justify-between gap-4 shadow-2xl relative overflow-hidden select-none">
+                  {/* Retro tape stripes */}
+                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-amber-500 to-indigo-500 opacity-20" />
+                  
+                  {/* Cassette layout reels */}
+                  <div className="flex items-center gap-3.5">
+                    <div className="flex items-center justify-center relative w-11 h-7 bg-stone-900 border border-stone-800 rounded-xs overflow-hidden">
+                      <div className="flex gap-2">
+                        <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
+                          <div className="w-1 h-1 bg-stone-500 rounded-full" />
+                        </div>
+                        <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
+                          <div className="w-1 h-1 bg-stone-500 rounded-full" />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col justify-center text-left">
+                      <p className="text-[9px] uppercase font-mono tracking-wider text-stone-500">Lo-Fi Ambient</p>
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-[#eaeaea] font-mono">SOL TAPE 01</p>
+                    </div>
+                  </div>
+
+                  {/* Cassette deck control buttons */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center pr-1.5">
+                      <span className="relative flex h-2 w-2">
+                        <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-red-600", !isBgmPlaying && "hidden")} />
+                        <span className={cn("relative inline-flex rounded-full h-2 w-2", isBgmPlaying ? "bg-red-600" : "bg-stone-800")} />
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={toggleBgm}
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center border transition-all cursor-pointer",
+                        isBgmPlaying
+                          ? "bg-white text-black border-white hover:bg-stone-200"
+                          : "bg-transparent text-stone-400 border-stone-800 hover:text-white hover:border-[#444] hover:bg-white/5"
+                      )}
+                    >
+                      {isBgmPlaying ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </aside>
 
             {/* Live Feed Video Viewport */}
             <main className="flex-grow relative flex items-center justify-center p-4 md:p-12 bg-[#080808] overflow-hidden min-h-[300px] md:min-h-[400px] order-2 md:order-2">
               {/* Vignette Shadow Overlay */}
               <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.95)] z-20" />
-
-              {/* Live Status Indicators (Desktop) */}
-              <div className="absolute top-8 left-8 hidden md:flex items-center gap-3 z-10 font-mono">
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#8e1616' }}></div>
-                <span className="text-[11px] uppercase tracking-widest text-[#aaa]">LIVE VIEW S.O.L CAM</span>
-              </div>
-              <div className="absolute bottom-8 right-8 hidden md:block text-right z-10 font-mono">
-                <p className="text-[10px] text-white/20">PREVIEW COMPRESSOR: HIGH-RES 60FPS</p>
-                <p className="text-[9px] text-[#666]">POSE GAP: {photoDelay} SECONDS</p>
-              </div>
 
               {/* Stream Video Wrapper with applied selected LIVE FILTER style */}
               <div className="relative w-full max-w-4xl aspect-[4/3] bg-[#111] overflow-hidden border border-[#222] shadow-3xl z-10">
@@ -742,6 +781,16 @@ export default function Photobooth() {
                   style={{ filter: currentFilter.style }}
                   className="w-full h-full object-cover transform -scale-x-100 transition-all duration-300"
                 />
+
+                {/* HUD: Live Status Indicators (nested inside video wrapper to prevent overlap) */}
+                <div className="absolute top-4 left-4 flex items-center gap-2 z-25 font-mono bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-sm border border-white/5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></div>
+                  <span className="text-[9px] uppercase tracking-widest text-[#eaeaea] font-bold">LIVE VIEW</span>
+                </div>
+                <div className="absolute bottom-4 right-4 text-right z-25 font-mono bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-sm border border-white/5 text-[8px] uppercase tracking-wider text-stone-300">
+                  <p className="text-white/40 font-bold">PREVIEW COMPRESSOR: HIGH-RES 60FPS</p>
+                  <p className="text-stone-500 font-bold mt-0.5">POSE GAP: {photoDelay} SECONDS</p>
+                </div>
 
                 {/* Animated Film grain live overlay */}
                 <div className="absolute inset-0 pointer-events-none opacity-[0.22] mix-blend-overlay z-15 bg-[radial-gradient(#fff_1.2px,transparent_1.2px)] [background-size:10px_10px]" />
@@ -1049,25 +1098,52 @@ export default function Photobooth() {
                   </button>
                 </div>
 
-                {/* Thank You & Instagram CTA */}
-                <div className="mt-6 pt-5 border-t border-[#2a2a2a]">
-                  <div className="bg-gradient-to-br from-[#1a1018] to-[#140c0c] border border-[#2a2020] rounded-lg p-4 text-center space-y-3">
-                    <Heart className="w-4 h-4 mx-auto" style={{ color: '#8e1616', fill: 'rgba(142, 22, 22, 0.4)' }} />
-                    <p className="text-[11px] text-stone-300 leading-relaxed font-serif italic">
-                      Thank you for using <span className="text-white font-semibold not-italic">S.O.L</span>! We hope this strip captures a moment worth keeping.
-                    </p>
-                    <p className="text-[9px] text-stone-500 uppercase tracking-widest">
-                      Share your experience with us
-                    </p>
-                    <a
-                      href="https://www.instagram.com/snapoflove.id/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4.5 py-2 border border-[#333] hover:border-white hover:bg-white hover:text-black text-stone-300 text-[10px] font-bold uppercase tracking-wider rounded-full transition-all duration-300 cursor-pointer shadow-md"
-                    >
-                      <Instagram className="w-3.5 h-3.5" />
-                      @snapoflove.id
-                    </a>
+                {/* Music Box Widget (Available on Screen 3) */}
+                <div className="mt-6 pt-5 border-t border-[#222]/80">
+                  <div className="bg-[#111] border border-[#222] rounded-lg p-3.5 flex items-center justify-between gap-4 shadow-2xl relative overflow-hidden select-none">
+                    {/* Retro tape stripes */}
+                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-amber-500 to-indigo-500 opacity-20" />
+                    
+                    {/* Cassette layout reels */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="flex items-center justify-center relative w-11 h-7 bg-stone-900 border border-stone-800 rounded-xs overflow-hidden">
+                        <div className="flex gap-2">
+                          <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
+                            <div className="w-1 h-1 bg-stone-500 rounded-full" />
+                          </div>
+                          <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
+                            <div className="w-1 h-1 bg-stone-500 rounded-full" />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col justify-center text-left">
+                        <p className="text-[9px] uppercase font-mono tracking-wider text-stone-500">Lo-Fi Ambient</p>
+                        <p className="text-[10px] uppercase font-bold tracking-widest text-[#eaeaea] font-mono">SOL TAPE 01</p>
+                      </div>
+                    </div>
+
+                    {/* Cassette deck control buttons */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-center pr-1.5">
+                        <span className="relative flex h-2 w-2">
+                          <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-red-600", !isBgmPlaying && "hidden")} />
+                          <span className={cn("relative inline-flex rounded-full h-2 w-2", isBgmPlaying ? "bg-red-600" : "bg-stone-800")} />
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={toggleBgm}
+                        className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center border transition-all cursor-pointer",
+                          isBgmPlaying
+                            ? "bg-white text-black border-white hover:bg-stone-200"
+                            : "bg-transparent text-stone-400 border-stone-800 hover:text-white hover:border-[#444] hover:bg-white/5"
+                        )}
+                      >
+                        {isBgmPlaying ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1099,6 +1175,81 @@ export default function Photobooth() {
             </main>
           </motion.div>
         )}
+
+        {/* Thank You / Feedback Popup Modal (Triggered on Export) */}
+        <AnimatePresence>
+          {showThankYouPopup && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              {/* Backdrop overlay */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowThankYouPopup(false)}
+                className="absolute inset-0 bg-black/75 backdrop-blur-md"
+              />
+
+              {/* Modal Box */}
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                transition={{ type: "spring", duration: 0.5 }}
+                className="relative w-full max-w-md bg-gradient-to-b from-[#161214] to-[#0c0a0b] border border-[#2a2226] rounded-2xl p-8 text-center space-y-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] z-10"
+              >
+                {/* Close Button */}
+                <button
+                  onClick={() => setShowThankYouPopup(false)}
+                  className="absolute top-4 right-4 text-stone-500 hover:text-white transition-colors text-lg cursor-pointer border-0 bg-transparent"
+                >
+                  ✕
+                </button>
+
+                <div className="space-y-2">
+                  <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-2 animate-bounce">
+                    <Heart className="w-5 h-5 text-[#8e1616]" style={{ fill: 'rgba(142, 22, 22, 0.4)' }} />
+                  </div>
+                  <h2 className="font-serif text-2xl italic text-white leading-none">Snap of Love</h2>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-stone-500 font-mono">Archive Composited Successfully</p>
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-xs text-stone-300 leading-relaxed font-serif italic max-w-sm mx-auto">
+                    Thank you for using S.O.L! Your snapshot has been saved. We hope this memory brightens your day.
+                  </p>
+                  <p className="text-[9px] text-[#8e1616] uppercase tracking-widest font-mono font-bold animate-pulse">
+                    Join our memory lane
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-2.5 pt-2">
+                  <a
+                    href="https://www.instagram.com/snapoflove.id/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 py-3 bg-white hover:bg-stone-100 text-black text-xs font-bold uppercase tracking-wider transition-all select-none cursor-pointer rounded-sm"
+                  >
+                    <Instagram className="w-4 h-4" />
+                    Follow @snapoflove.id
+                  </a>
+                  <a
+                    href="https://forms.gle/BdPLUwGqoPfzcQ7r5"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 py-3 border border-[#333] hover:border-white hover:bg-white/5 text-stone-300 hover:text-white text-xs font-bold uppercase tracking-wider transition-all select-none cursor-pointer rounded-sm"
+                  >
+                    <Smile className="w-4 h-4" />
+                    Share Feedback Form
+                  </a>
+                </div>
+
+                <div className="pt-2 text-[9px] text-stone-600 font-mono">
+                  Click anywhere outside or ✕ to close
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
       </AnimatePresence>
 
