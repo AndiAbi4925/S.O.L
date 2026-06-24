@@ -22,9 +22,8 @@ import {
   Check,
   Loader2
 } from 'lucide-react';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, setDoc, collection } from 'firebase/firestore';
-import { db, storage } from '../lib/firebase';
+import { db } from '../lib/firebase';
 import qrcode from 'qrcode-generator';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -375,7 +374,7 @@ export default function Photobooth() {
         
         // Convert to Blob for both download and storage upload
         blob = await new Promise<Blob>((resolve) => {
-          cvs.toBlob((b) => resolve(b!), mime, 0.95);
+          cvs.toBlob((b) => resolve(b!), mime, format === 'jpg' ? 0.80 : undefined);
         });
         url = URL.createObjectURL(blob);
         filename += `.${format}`;
@@ -425,15 +424,22 @@ export default function Photobooth() {
       playDing();
       setShowThankYouPopup(true);
 
-      // Upload to Firebase Storage and write document in the background
+      // Upload to Cloud Firestore (Base64 direct storage for 100% free plan compliance)
       (async () => {
         try {
-          const fileRef = ref(storage, `shares/${docId}.${format}`);
-          await uploadBytes(fileRef, blob);
-          const downloadUrl = await getDownloadURL(fileRef);
+          const getBase64 = (file: Blob): Promise<string> => {
+            return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.readAsDataURL(file);
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = (error) => reject(error);
+            });
+          };
+
+          const base64Image = await getBase64(blob);
 
           await setDoc(shareDocRef, {
-            imageUrl: downloadUrl,
+            imageUrl: base64Image,
             layout: format === 'gif' ? 'animated' : activeLayoutId,
             format: format,
             createdAt: new Date()
