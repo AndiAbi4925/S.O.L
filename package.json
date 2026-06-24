@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "PATH=\"/usr/local/bin:$PATH\" vite --port=3000 --host=0.0.0.0",
-    "build": "PATH=\"/usr/local/bin:$PATH\" vite build",
-    "preview": "PATH=\"/usr/local/bin:$PATH\" vite preview",
+    "dev": "vite --port=3000 --host=0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "PATH=\"/usr/local/bin:$PATH\" tsc --noEmit"
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
