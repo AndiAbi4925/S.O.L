@@ -17,8 +17,15 @@ import {
   Play,
   Pause,
   Volume2,
-  VolumeX
+  VolumeX,
+  Link as LinkIcon,
+  Check,
+  Loader2
 } from 'lucide-react';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, setDoc, collection } from 'firebase/firestore';
+import { db, storage } from '../lib/firebase';
+import qrcode from 'qrcode-generator';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import {
@@ -131,6 +138,33 @@ export default function Photobooth() {
   const [isBgmPlaying, setIsBgmPlaying] = useState<boolean>(false);
   const [isAnimatedPreview, setIsAnimatedPreview] = useState<boolean>(false);
   const [showThankYouPopup, setShowThankYouPopup] = useState<boolean>(false);
+  const [isUploadingCloud, setIsUploadingCloud] = useState<boolean>(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState<boolean>(false);
+
+  const getQrCodeDataUrl = (url: string) => {
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData(url);
+      qr.make();
+      return qr.createDataURL(4);
+    } catch (e) {
+      console.error(e);
+      return '';
+    }
+  };
+
+  const copyShareLink = async () => {
+    if (!shareUrl) return;
+    playTick();
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
+  };
 
   const toggleBgm = () => {
     if (isBgmPlaying) {
@@ -313,10 +347,18 @@ export default function Photobooth() {
   const handleExport = async (format: 'jpg' | 'png' | 'gif') => {
     if (!capturedPhotos.length) return;
     setIsExporting(true);
+    setIsUploadingCloud(true);
+    setShareUrl(null);
+    setCopied(false);
+
+    // Pre-create share document to get the ID
+    const shareDocRef = doc(collection(db, 'shares'));
+    const docId = shareDocRef.id;
 
     try {
       let url = '';
       let filename = `SOL-Booth-${new Date().getTime()}`;
+      let blob: Blob;
 
       if (format === 'jpg' || format === 'png') {
         const cvs = renderStrip(
@@ -330,9 +372,14 @@ export default function Photobooth() {
           lensEffect
         );
         const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
-        url = cvs.toDataURL(mime, 0.95);
+        
+        // Convert to Blob for both download and storage upload
+        blob = await new Promise<Blob>((resolve) => {
+          cvs.toBlob((b) => resolve(b!), mime, 0.95);
+        });
+        url = URL.createObjectURL(blob);
         filename += `.${format}`;
-      } else if (format === 'gif') {
+      } else {
         // Generate high performance frames with appropriate scaling to ensure no device lag
         const frames: HTMLCanvasElement[] = [];
         for (let i = 0; i < 5; i++) {
@@ -363,11 +410,12 @@ export default function Photobooth() {
           return c;
         });
 
-        const blob = await createGifExporter(gifFrames, gifFrames[0].width, gifFrames[0].height, 8);
+        blob = await createGifExporter(gifFrames, gifFrames[0].width, gifFrames[0].height, 8);
         url = URL.createObjectURL(blob);
         filename += '.gif';
       }
 
+      // Trigger local browser download instantly
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
@@ -376,8 +424,34 @@ export default function Photobooth() {
       document.body.removeChild(link);
       playDing();
       setShowThankYouPopup(true);
+
+      // Upload to Firebase Storage and write document in the background
+      (async () => {
+        try {
+          const fileRef = ref(storage, `shares/${docId}.${format}`);
+          await uploadBytes(fileRef, blob);
+          const downloadUrl = await getDownloadURL(fileRef);
+
+          await setDoc(shareDocRef, {
+            imageUrl: downloadUrl,
+            layout: format === 'gif' ? 'animated' : activeLayoutId,
+            format: format,
+            createdAt: new Date()
+          });
+
+          // Build sharing URL using env config if provided, otherwise window.location.origin
+          const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+          setShareUrl(`${baseUrl}/share?id=${docId}`);
+        } catch (err) {
+          console.error('Firebase cloud sync failed:', err);
+        } finally {
+          setIsUploadingCloud(false);
+        }
+      })();
+
     } catch (e) {
       console.error('Export error', e);
+      setIsUploadingCloud(false);
     } finally {
       setIsExporting(false);
     }
@@ -1186,16 +1260,16 @@ export default function Photobooth() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setShowThankYouPopup(false)}
-                className="absolute inset-0 bg-black/75 backdrop-blur-md"
+                className="absolute inset-0 bg-black/80 backdrop-blur-md"
               />
 
               {/* Modal Box */}
               <motion.div
-                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                exit={{ scale: 0.95, opacity: 0, y: 20 }}
                 transition={{ type: "spring", duration: 0.5 }}
-                className="relative w-full max-w-md bg-gradient-to-b from-[#161214] to-[#0c0a0b] border border-[#2a2226] rounded-2xl p-8 text-center space-y-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] z-10"
+                className="relative w-full max-w-md bg-[#121212] border border-stone-800 rounded-xl p-8 text-center space-y-6 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.9)] z-10 font-mono"
               >
                 {/* Close Button */}
                 <button
@@ -1206,28 +1280,93 @@ export default function Photobooth() {
                 </button>
 
                 <div className="space-y-2">
-                  <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-2 animate-bounce">
+                  <div className="w-12 h-12 rounded-full bg-stone-900 border border-stone-800 flex items-center justify-center mx-auto mb-2 animate-pulse">
                     <Heart className="w-5 h-5 text-[#8e1616]" style={{ fill: 'rgba(142, 22, 22, 0.4)' }} />
                   </div>
                   <h2 className="font-serif text-2xl italic text-white leading-none">Snap of Love</h2>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-stone-500 font-mono">Archive Composited Successfully</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-stone-500">
+                    {isUploadingCloud ? 'Syncing to Cloud Tape...' : 'Memory Composited & Linked'}
+                  </p>
+                </div>
+
+                {/* Cloud Share Section */}
+                <div className="bg-[#181818] border border-stone-800/80 p-5 rounded-lg flex flex-col items-center gap-4 relative overflow-hidden">
+                  <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-amber-500 via-red-500 to-indigo-500 opacity-40" />
+
+                  {isUploadingCloud ? (
+                    <div className="py-6 flex flex-col items-center gap-3">
+                      <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+                      <p className="text-[10px] text-stone-400 uppercase tracking-widest leading-relaxed">
+                        [ Uploading to cloud... ]
+                      </p>
+                    </div>
+                  ) : shareUrl ? (
+                    <div className="w-full flex flex-col items-center gap-4">
+                      {/* QR Code Container */}
+                      <div className="bg-white p-3 rounded-lg shadow-xl inline-block">
+                        <img
+                          src={getQrCodeDataUrl(shareUrl)}
+                          alt="Share QR Code"
+                          className="w-32 h-32 select-none"
+                        />
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-stone-300 uppercase tracking-widest font-bold">
+                          Scan to download on mobile
+                        </p>
+                        <p className="text-[9px] text-stone-500">
+                          Or share this retro link with friends
+                        </p>
+                      </div>
+
+                      {/* Link copy component */}
+                      <div className="w-full flex items-center gap-2 border border-stone-800 bg-[#0e0e0e] p-1 pl-3 text-left">
+                        <span className="text-[10px] text-stone-400 truncate flex-1 font-mono">
+                          {shareUrl}
+                        </span>
+                        <button
+                          onClick={copyShareLink}
+                          className={cn(
+                            "px-4 py-2 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer rounded-none border-l border-stone-800",
+                            copied 
+                              ? "bg-amber-500 text-black hover:bg-amber-400" 
+                              : "bg-[#161616] text-white hover:bg-stone-800"
+                          )}
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="w-3.5 h-3.5" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <LinkIcon className="w-3.5 h-3.5" />
+                              Copy
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-6 flex flex-col items-center gap-2 text-stone-500 text-[10px] uppercase tracking-wider">
+                      [ Cloud feature unavailable ]
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-xs text-stone-300 leading-relaxed font-serif italic max-w-sm mx-auto">
-                    Thank you for using S.O.L! Your snapshot has been saved. We hope this memory brightens your day.
-                  </p>
-                  <p className="text-[9px] text-[#8e1616] uppercase tracking-widest font-mono font-bold animate-pulse">
-                    Join our memory lane
+                  <p className="text-xs text-stone-400 leading-relaxed font-serif italic max-w-sm mx-auto">
+                    Your photo strip has been saved. Scan the QR code to load it on your phone or share the nostalgia!
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-2.5 pt-2">
+                <div className="flex flex-col gap-2 pt-2">
                   <a
                     href="https://www.instagram.com/snapoflove.id/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 py-3 bg-white hover:bg-stone-100 text-black text-xs font-bold uppercase tracking-wider transition-all select-none cursor-pointer rounded-sm"
+                    className="w-full inline-flex items-center justify-center gap-2 py-3 bg-[#181818] border border-stone-800 hover:border-white hover:bg-white/5 text-stone-300 hover:text-white text-xs font-bold uppercase tracking-wider transition-all select-none cursor-pointer rounded-sm"
                   >
                     <Instagram className="w-4 h-4" />
                     Follow @snapoflove.id
@@ -1236,7 +1375,7 @@ export default function Photobooth() {
                     href="https://forms.gle/BdPLUwGqoPfzcQ7r5"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 py-3 border border-[#333] hover:border-white hover:bg-white/5 text-stone-300 hover:text-white text-xs font-bold uppercase tracking-wider transition-all select-none cursor-pointer rounded-sm"
+                    className="w-full inline-flex items-center justify-center gap-2 py-3 bg-[#181818] border border-stone-800 hover:border-white hover:bg-white/5 text-stone-300 hover:text-white text-xs font-bold uppercase tracking-wider transition-all select-none cursor-pointer rounded-sm"
                   >
                     <Smile className="w-4 h-4" />
                     Share Feedback Form
