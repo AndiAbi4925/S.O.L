@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Photobooth from './components/Photobooth';
 import SharePage from './components/SharePage';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 export default function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
@@ -25,6 +26,7 @@ export default function App() {
         <Photobooth />
       )}
       <Analytics />
+      <SpeedInsights />
     </div>
   );
 }
