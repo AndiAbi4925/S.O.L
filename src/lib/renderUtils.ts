@@ -149,6 +149,19 @@ export const LAYOUTS: Record<string, LayoutDef> = {
     ],
     datePos: { x: 90, y: 1560 },
   },
+  'filmstrip': {
+    id: 'filmstrip',
+    name: 'Retro Filmstrip',
+    width: 680,
+    height: 1800,
+    slots: [
+      { x: 90, y: 60, w: 500, h: 375 },
+      { x: 90, y: 475, w: 500, h: 375 },
+      { x: 90, y: 890, w: 500, h: 375 },
+      { x: 90, y: 1305, w: 500, h: 375 },
+    ],
+    datePos: { x: 90, y: 1735 },
+  },
 };
 
 export const VISUAL_FILTERS = {
@@ -458,6 +471,22 @@ export function renderStrip(
   ctx.fillStyle = theme.bgHex;
   ctx.fillRect(0, 0, layout.width, layout.height);
 
+  // If filmstrip layout, draw the side sprocket holes and dark vertical film tracks
+  if (layout.id === 'filmstrip') {
+    ctx.fillStyle = themeId === 'obsidian' ? '#000000' : '#141414';
+    ctx.fillRect(0, 0, 70, layout.height);
+    ctx.fillRect(layout.width - 70, 0, 70, layout.height);
+
+    ctx.fillStyle = theme.bgHex;
+    const holeW = 20;
+    const holeH = 12;
+    const spacing = 45;
+    for (let y = 20; y < layout.height - 20; y += spacing) {
+      ctx.fillRect(25, y, holeW, holeH);
+      ctx.fillRect(layout.width - 45, y, holeW, holeH);
+    }
+  }
+
   // Draw photos into computed slots
   layout.slots.forEach((slot, idx) => {
     if (photos[idx] && photos[idx][frameIndex]) {
@@ -586,7 +615,7 @@ export function renderStrip(
     const cellSize = qrSize / moduleCount;
 
     // Position: bottom-right corner of the strip
-    const qrX = layout.width - qrSize - 40;
+    const qrX = layout.id === 'filmstrip' ? layout.width - qrSize - 90 : layout.width - qrSize - 40;
     const qrY = layout.datePos.y - qrSize + 6;
 
     // Draw QR modules (No background, match stamp color)
@@ -616,7 +645,7 @@ export function renderStrip(
   } catch (e) {
     console.warn('QR code generation failed:', e);
     // Fallback if QR fails
-    const textX = layout.width - 40;
+    const textX = layout.id === 'filmstrip' ? layout.width - 90 : layout.width - 40;
     const textY = layout.datePos.y;
     ctx.font = 'bold 16px "Inter", sans-serif';
     ctx.fillStyle = theme.fontHex;

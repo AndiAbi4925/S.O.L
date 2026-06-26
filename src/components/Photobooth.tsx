@@ -20,9 +20,10 @@ import {
   VolumeX,
   Link as LinkIcon,
   Check,
-  Loader2
+  Loader2,
+  Lock
 } from 'lucide-react';
-import { doc, setDoc, collection } from 'firebase/firestore';
+import { doc, setDoc, collection, onSnapshot, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import qrcode from 'qrcode-generator';
 import { motion, AnimatePresence } from 'motion/react';
@@ -140,6 +141,123 @@ export default function Photobooth() {
   const [isUploadingCloud, setIsUploadingCloud] = useState<boolean>(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+
+  // Monetization States
+  const [isPremium, setIsPremium] = useState<boolean>(() => localStorage.getItem('sol_premium') === 'true');
+  const [showPremiumModal, setShowPremiumModal] = useState<boolean>(false);
+  const [activeTrxId, setActiveTrxId] = useState<string | null>(null);
+  const [trxStatus, setTrxStatus] = useState<'idle' | 'pending' | 'settled'>('idle');
+  const [adCountdown, setAdCountdown] = useState<number>(0);
+  const [showAdOverlay, setShowAdOverlay] = useState<boolean>(false);
+  const [pendingExportFormat, setPendingExportFormat] = useState<'jpg' | 'png' | 'gif' | null>(null);
+  const [restoreCode, setRestoreCode] = useState<string>('');
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const [restoreSuccess, setRestoreSuccess] = useState<boolean>(false);
+
+  // Real-time listener for current transaction status
+  useEffect(() => {
+    if (!activeTrxId) return;
+
+    const trxRef = doc(db, 'transactions', activeTrxId);
+    const unsubscribe = onSnapshot(trxRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.status === 'settled') {
+          playDing();
+          setIsPremium(true);
+          localStorage.setItem('sol_premium', 'true');
+          localStorage.setItem('sol_premium_trx', activeTrxId);
+          setTrxStatus('settled');
+          setTimeout(() => {
+            setShowPremiumModal(false);
+            setTrxStatus('idle');
+            setActiveTrxId(null);
+          }, 2000);
+        } else {
+          setTrxStatus('pending');
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [activeTrxId]);
+
+  const startPremiumCheckout = async () => {
+    playTick();
+    const trxCol = collection(db, 'transactions');
+    const trxDocRef = doc(trxCol);
+    const trxId = trxDocRef.id;
+
+    try {
+      setTrxStatus('pending');
+      setActiveTrxId(trxId);
+      
+      // Write pending transaction doc to Firestore
+      await setDoc(trxDocRef, {
+        status: 'pending',
+        amount: 15000,
+        currency: 'IDR',
+        createdAt: new Date()
+      });
+    } catch (e) {
+      console.error('Failed to create transaction:', e);
+    }
+  };
+
+  const simulatePaymentSuccess = async () => {
+    if (!activeTrxId) return;
+    playTick();
+    try {
+      const trxDocRef = doc(db, 'transactions', activeTrxId);
+      await setDoc(trxDocRef, {
+        status: 'settled',
+        amount: 15000,
+        currency: 'IDR',
+        createdAt: new Date(),
+        settledAt: new Date(),
+        simulated: true
+      }, { merge: true });
+    } catch (e) {
+      console.error('Failed to simulate payment:', e);
+    }
+  };
+
+  const handleRestorePurchase = async (e: React.FormEvent) => {
+    e.preventDefault();
+    playTick();
+    setRestoreError(null);
+    setRestoreSuccess(false);
+
+    if (!restoreCode.trim()) {
+      setRestoreError('Please enter a transaction ID.');
+      return;
+    }
+
+    try {
+      const trxRef = doc(db, 'transactions', restoreCode.trim());
+      const docSnap = await getDoc(trxRef);
+      if (docSnap.exists() && docSnap.data().status === 'settled') {
+        setIsPremium(true);
+        localStorage.setItem('sol_premium', 'true');
+        localStorage.setItem('sol_premium_trx', restoreCode.trim());
+        setRestoreSuccess(true);
+        setRestoreCode('');
+        setTimeout(() => {
+          setShowPremiumModal(false);
+          setRestoreSuccess(false);
+        }, 2000);
+      } else {
+        setRestoreError('ID not found or not yet settled.');
+      }
+    } catch (err) {
+      console.error(err);
+      setRestoreError('Error connecting to restore database.');
+    }
+  };
+
+  const isLocked = (layoutId: string) => {
+    return (layoutId === 'scrapbook' || layoutId === 'filmstrip') && !isPremium;
+  };
 
   const getQrCodeDataUrl = (url: string) => {
     try {
@@ -463,6 +581,38 @@ export default function Photobooth() {
     }
   };
 
+  const triggerExport = (format: 'jpg' | 'png' | 'gif') => {
+    if (isPremium) {
+      handleExport(format);
+      return;
+    }
+
+    const currentCountStr = localStorage.getItem('sol_export_count') || '0';
+    const currentCount = parseInt(currentCountStr, 10);
+    const newCount = currentCount + 1;
+    localStorage.setItem('sol_export_count', newCount.toString());
+
+    if (newCount % 3 === 0) {
+      setPendingExportFormat(format);
+      setAdCountdown(5);
+      setShowAdOverlay(true);
+    } else {
+      handleExport(format);
+    }
+  };
+
+  useEffect(() => {
+    let timer: any = null;
+    if (showAdOverlay && adCountdown > 0) {
+      timer = setInterval(() => {
+        setAdCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [showAdOverlay, adCountdown]);
+
   const startNewSession = () => {
     setCapturedPhotos([]);
     setCaptureState('idle');
@@ -699,40 +849,76 @@ export default function Photobooth() {
                 <section>
                   <label className="text-[11px] uppercase tracking-widest text-[#888] font-semibold block mb-3">Frame Configuration</label>
                   <div className="grid grid-cols-5 md:grid-cols-3 gap-2">
-                    {Object.values(LAYOUTS).map((layout) => (
-                      <button
-                        key={layout.id}
-                        disabled={captureState === 'countdown' || captureState === 'capturing'}
-                        onClick={() => setActiveLayoutId(layout.id)}
-                        className={cn(
-                          "aspect-square border flex flex-col gap-1 p-1.5 items-center justify-center transition-all disabled:opacity-30 rounded-xs cursor-pointer",
-                          activeLayoutId === layout.id
-                            ? "border-white bg-white/5 text-white"
-                            : "border-[#222] hover:border-[#444] text-[#888] hover:text-white"
-                        )}
-                        title={layout.name}
-                      >
-                        {layout.id === '1x3' && <div className="w-3.5 h-5 border border-current opacity-60"></div>}
-                        {layout.id === '1x4' && <div className="w-3.5 h-6 border border-current opacity-60"></div>}
-                        {layout.id === '2x2' && (
-                          <div className="grid grid-cols-2 gap-[1.5px] opacity-60">
-                            <div className="w-2 h-2 border border-current"></div>
-                            <div className="w-2 h-2 border border-current"></div>
-                            <div className="w-2 h-2 border border-current"></div>
-                            <div className="w-2 h-2 border border-current"></div>
-                          </div>
-                        )}
-                        {layout.id === '1x1' && <div className="w-4 h-4 border border-current opacity-60 bg-current/10"></div>}
-                        {layout.id === '2x1' && <div className="w-5 h-2.5 border border-current opacity-60"></div>}
-                        {layout.id === 'scrapbook' && (
-                          <div className="relative w-4 h-5 opacity-60">
-                            <div className="absolute top-0.5 left-0.5 w-2.5 h-3.5 border border-current transform -rotate-12 bg-current/5"></div>
-                            <div className="absolute top-1 left-2 w-2.5 h-3.5 border border-current transform rotate-12 bg-current/5"></div>
-                          </div>
-                        )}
-                        <span className="text-[9px] uppercase font-mono tracking-tighter mt-1">{layout.id}</span>
-                      </button>
-                    ))}
+                    {Object.values(LAYOUTS).map((layout) => {
+                      const locked = isLocked(layout.id);
+                      return (
+                        <button
+                          key={layout.id}
+                          disabled={captureState === 'countdown' || captureState === 'capturing'}
+                          onClick={() => {
+                            if (locked) {
+                              setShowPremiumModal(true);
+                              startPremiumCheckout();
+                            } else {
+                              setActiveLayoutId(layout.id);
+                            }
+                          }}
+                          className={cn(
+                            "aspect-square border flex flex-col gap-1 p-1.5 items-center justify-center transition-all disabled:opacity-30 rounded-xs cursor-pointer relative",
+                            activeLayoutId === layout.id
+                              ? "border-white bg-white/5 text-white"
+                              : locked
+                              ? "border-[#222] hover:border-amber-500/50 text-[#888] hover:text-amber-500"
+                              : "border-[#222] hover:border-[#444] text-[#888] hover:text-white"
+                          )}
+                          title={layout.name}
+                        >
+                          {locked && (
+                            <div className="absolute top-1 right-1 bg-black/80 border border-amber-500/30 p-[2px] rounded-full">
+                              <Lock className="w-2 h-2 text-amber-500" />
+                            </div>
+                          )}
+                          {layout.id === '1x3' && <div className="w-3.5 h-5 border border-current opacity-60"></div>}
+                          {layout.id === '1x4' && <div className="w-3.5 h-6 border border-current opacity-60"></div>}
+                          {layout.id === '2x2' && (
+                            <div className="grid grid-cols-2 gap-[1.5px] opacity-60">
+                              <div className="w-2 h-2 border border-current"></div>
+                              <div className="w-2 h-2 border border-current"></div>
+                              <div className="w-2 h-2 border border-current"></div>
+                              <div className="w-2 h-2 border border-current"></div>
+                            </div>
+                          )}
+                          {layout.id === '1x1' && <div className="w-4 h-4 border border-current opacity-60 bg-current/10"></div>}
+                          {layout.id === '2x1' && <div className="w-5 h-2.5 border border-current opacity-60"></div>}
+                          {layout.id === 'scrapbook' && (
+                            <div className="relative w-4 h-5 opacity-60">
+                              <div className="absolute top-0.5 left-0.5 w-2.5 h-3.5 border border-current transform -rotate-12 bg-current/5"></div>
+                              <div className="absolute top-1 left-2 w-2.5 h-3.5 border border-current transform rotate-12 bg-current/5"></div>
+                            </div>
+                          )}
+                          {layout.id === 'filmstrip' && (
+                            <div className="relative w-4 h-5 opacity-60 border border-current flex flex-col justify-between py-[1.5px] px-[2.5px] overflow-hidden">
+                              {/* mock sprockets */}
+                              <div className="absolute left-[0.5px] top-0 bottom-0 flex flex-col justify-between py-[1px]">
+                                <div className="w-[0.5px] h-[0.5px] bg-current"></div>
+                                <div className="w-[0.5px] h-[0.5px] bg-current"></div>
+                                <div className="w-[0.5px] h-[0.5px] bg-current"></div>
+                                <div className="w-[0.5px] h-[0.5px] bg-current"></div>
+                              </div>
+                              <div className="absolute right-[0.5px] top-0 bottom-0 flex flex-col justify-between py-[1px]">
+                                <div className="w-[0.5px] h-[0.5px] bg-current"></div>
+                                <div className="w-[0.5px] h-[0.5px] bg-current"></div>
+                                <div className="w-[0.5px] h-[0.5px] bg-current"></div>
+                                <div className="w-[0.5px] h-[0.5px] bg-current"></div>
+                              </div>
+                              <div className="w-full h-1 border border-current bg-current/5"></div>
+                              <div className="w-full h-1 border border-current bg-current/5"></div>
+                            </div>
+                          )}
+                          <span className="text-[9px] uppercase font-mono tracking-tighter mt-1">{layout.id}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </section>
 
@@ -1136,10 +1322,8 @@ export default function Photobooth() {
 
               {/* Export Deliverables Area */}
               <div className="mt-8 space-y-3 pt-6 border-t border-[#2a2a2a]">
-                <label className="text-[11px] uppercase tracking-widest text-[#888] font-semibold block">Deliverables</label>
-
-                <button
-                  onClick={() => handleExport('jpg')}
+                <label className="text-[11px] uppercase tracking-widest text-[#888] font-semibold block">Deliverables</label>                 <button
+                  onClick={() => triggerExport('jpg')}
                   disabled={isExporting}
                   className="w-full py-4 bg-white text-black text-[12px] font-bold uppercase tracking-widest hover:bg-[#ccc] transition-colors disabled:opacity-50 select-none cursor-pointer"
                 >
@@ -1148,14 +1332,14 @@ export default function Photobooth() {
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleExport('png')}
+                    onClick={() => triggerExport('png')}
                     disabled={isExporting}
                     className="flex-1 py-2.5 border border-[#333] text-[#e0e0e0] hover:bg-white/5 text-[10px] uppercase tracking-tighter transition-colors disabled:opacity-50 cursor-pointer"
                   >
                     Save PNG
                   </button>
                   <button
-                    onClick={() => handleExport('gif')}
+                    onClick={() => triggerExport('gif')}
                     disabled={isExporting}
                     className="flex-1 py-2.5 border border-[#333] text-[#e0e0e0] hover:bg-white/5 text-[10px] uppercase tracking-tighter transition-colors disabled:opacity-50 cursor-pointer"
                   >
@@ -1255,6 +1439,152 @@ export default function Photobooth() {
             </main>
           </motion.div>
         )}
+
+        {/* Premium Checkout Modal */}
+        <AnimatePresence>
+          {showPremiumModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => {
+                  if (trxStatus !== 'settled') {
+                    setShowPremiumModal(false);
+                  }
+                }}
+                className="absolute inset-0 bg-black/85 backdrop-blur-md"
+              />
+
+              {/* Modal Card */}
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                transition={{ type: "spring", duration: 0.5 }}
+                className="relative w-full max-w-md bg-[#121212] border border-stone-800 rounded-xl p-6 md:p-8 text-center space-y-6 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.9)] z-10 font-mono"
+              >
+                {/* Close Button */}
+                {trxStatus !== 'settled' && (
+                  <button
+                    onClick={() => setShowPremiumModal(false)}
+                    className="absolute top-4 right-4 text-stone-500 hover:text-white transition-colors text-lg cursor-pointer border-0 bg-transparent"
+                  >
+                    ✕
+                  </button>
+                )}
+
+                <div className="space-y-2">
+                  <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-1">
+                    <Sparkles className="w-5 h-5 text-amber-500 animate-pulse" />
+                  </div>
+                  <h2 className="font-serif text-2xl italic text-white leading-none">S.O.L Premium</h2>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-stone-500">
+                    Unlock Premium Presets
+                  </p>
+                </div>
+
+                {/* QRIS / Checkout content */}
+                <div className="bg-[#181818] border border-stone-800/80 p-5 rounded-lg flex flex-col items-center gap-4 relative overflow-hidden animate-in fade-in duration-300">
+                  <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-700 opacity-60" />
+
+                  {trxStatus === 'settled' ? (
+                    <div className="py-6 flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                        <Check className="w-6 h-6" />
+                      </div>
+                      <p className="text-xs text-emerald-400 uppercase tracking-widest font-bold">
+                        [ PAYMENT SETTLED ]
+                      </p>
+                      <p className="text-[10px] text-stone-400">
+                        Premium presets unlocked successfully!
+                      </p>
+                    </div>
+                  ) : activeTrxId ? (
+                    <div className="w-full flex flex-col items-center gap-4">
+                      {/* Fake QRIS QR Code display */}
+                      <div className="relative bg-white p-3 rounded-lg shadow-xl inline-block border border-amber-500/20">
+                        <img
+                          src={getQrCodeDataUrl(`https://s-o-l.vercel.app/pay?trx=${activeTrxId}`)}
+                          alt="QRIS QR Code"
+                          className="w-36 h-36 select-none"
+                        />
+                      </div>
+
+                      {/* Transaction ID & Status badge */}
+                      <div className="space-y-1.5 w-full text-center">
+                        <p className="text-[10px] text-stone-300 uppercase tracking-widest font-bold flex items-center justify-center gap-1.5">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                          </span>
+                          Waiting for payment
+                        </p>
+                        <div className="text-[9px] text-stone-500 bg-[#0e0e0e] border border-stone-900 px-2 py-1 rounded select-all font-mono break-all">
+                          TRX ID: {activeTrxId}
+                        </div>
+                        <p className="text-[8px] text-stone-500 max-w-[280px] mx-auto leading-relaxed">
+                          Scan with bank or payment app, or copy this TRX ID to restore later.
+                        </p>
+                      </div>
+
+                      {/* Sandbox simulation trigger button */}
+                      <button
+                        onClick={simulatePaymentSuccess}
+                        className="w-full mt-2 py-2.5 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 rounded-sm cursor-pointer shadow-md border-0"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        Simulate Payment (Sandbox)
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="py-6 flex flex-col items-center gap-3">
+                      <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+                      <p className="text-[10px] text-stone-400 uppercase tracking-widest leading-relaxed">
+                        Initializing transaction...
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Restore section - only visible when payment is not settled */}
+                {trxStatus !== 'settled' && (
+                  <form onSubmit={handleRestorePurchase} className="border-t border-stone-900 pt-5 space-y-3">
+                    <label className="text-[10px] uppercase tracking-wider text-stone-400 block text-left">
+                      Restore Premium Access
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Enter Transaction ID"
+                        value={restoreCode}
+                        onChange={(e) => setRestoreCode(e.target.value)}
+                        className="flex-1 bg-[#171717] border border-stone-850 text-xs font-mono py-2 px-3 text-white focus:outline-none focus:border-stone-600 rounded-sm"
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-white text-[10px] font-bold uppercase tracking-wider transition-colors rounded-sm cursor-pointer border-0"
+                      >
+                        Restore
+                      </button>
+                    </div>
+                    {restoreError && (
+                      <p className="text-[9px] text-red-500 text-left font-mono">{restoreError}</p>
+                    )}
+                    {restoreSuccess && (
+                      <p className="text-[9px] text-emerald-400 text-left font-mono">Premium access restored!</p>
+                    )}
+                  </form>
+                )}
+
+                <div className="text-[9px] text-stone-600 pt-2 font-mono">
+                  {trxStatus === 'settled' ? 'Completing activation...' : 'Tap outside or ✕ to cancel'}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Thank You / Feedback Popup Modal (Triggered on Export) */}
         <AnimatePresence>
@@ -1391,6 +1721,94 @@ export default function Photobooth() {
                 <div className="pt-2 text-[9px] text-stone-600 font-mono">
                   Click anywhere outside or ✕ to close
                 </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Fullscreen Countdown Ad Overlay */}
+        <AnimatePresence>
+          {showAdOverlay && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/95 backdrop-blur-md"
+              />
+
+              {/* Ad Card container */}
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="relative w-full max-w-lg bg-[#141414] border border-stone-800 rounded-xl p-8 text-center space-y-6 shadow-3xl z-10 font-mono"
+              >
+                {/* Header info */}
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-mono tracking-[0.25em] text-[#8e1616] font-bold">
+                    S.O.L Studio Sponsor Interstitial
+                  </span>
+                  <h2 className="font-serif text-3xl italic text-white leading-tight">
+                    Processing Film Strip
+                  </h2>
+                  <div className="h-[2px] w-12 bg-stone-800 mx-auto my-2" />
+                </div>
+
+                {/* Main simulated ad display area */}
+                <div className="bg-black/50 border border-stone-900 p-6 rounded-lg relative overflow-hidden flex flex-col items-center justify-center min-h-[160px] gap-3">
+                  <Heart className="w-10 h-10 text-[#8e1616]/30 animate-pulse" style={{ fill: 'rgba(142, 22, 22, 0.1)' }} />
+                  <p className="text-xs text-stone-300 font-bold uppercase tracking-wider">
+                    SNAP OF LOVE • ANALOG EMOTIONS
+                  </p>
+                  <p className="text-[10px] text-stone-500 max-w-[280px] leading-relaxed">
+                    S.O.L is 100% free and cardless. Support our free plan by following our releases on Instagram!
+                  </p>
+                  <a
+                    href="https://www.instagram.com/snapoflove.id/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-[#8e1616] hover:text-[#b02a2a] underline font-bold mt-2"
+                  >
+                    @snapoflove.id <Instagram className="w-3.5 h-3.5 inline ml-1" />
+                  </a>
+                </div>
+
+                {/* Progress bar simulation */}
+                <div className="space-y-2 text-left">
+                  <div className="flex justify-between text-[10px] text-stone-500 uppercase tracking-wider font-bold">
+                    <span>Developing exposure...</span>
+                    <span>{adCountdown > 0 ? `${adCountdown}s remaining` : 'Complete'}</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-[#1e1e1e] rounded-none overflow-hidden relative border border-stone-900">
+                    <motion.div
+                      initial={{ width: '0%' }}
+                      animate={{ width: `${((5 - adCountdown) / 5) * 100}%` }}
+                      className="absolute inset-y-0 left-0 bg-[#8e1616]"
+                    />
+                  </div>
+                </div>
+
+                {/* Skip CTA Button */}
+                <button
+                  disabled={adCountdown > 0}
+                  onClick={() => {
+                    if (pendingExportFormat) {
+                      handleExport(pendingExportFormat);
+                    }
+                    setShowAdOverlay(false);
+                    setPendingExportFormat(null);
+                  }}
+                  className={cn(
+                    "w-full py-4.5 text-xs font-bold uppercase tracking-[0.25em] transition-all select-none cursor-pointer border-0",
+                    adCountdown > 0
+                      ? "bg-stone-900 text-stone-500 border border-stone-850 cursor-not-allowed"
+                      : "bg-white text-black hover:bg-stone-200"
+                  )}
+                >
+                  {adCountdown > 0 ? `Skip Ad in ${adCountdown}s` : 'Skip Ad & Save File'}
+                </button>
               </motion.div>
             </div>
           )}

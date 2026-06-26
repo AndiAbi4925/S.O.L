@@ -4,5 +4,8 @@ service cloud.firestore {
     match /shares/{shareId} {
       allow read, write: if true;
     }
+    match /transactions/{trxId} {
+      allow read, write: if true;
+    }
   }
 }
