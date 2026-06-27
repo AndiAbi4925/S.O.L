@@ -191,7 +191,7 @@ export default function Photobooth() {
     try {
       setTrxStatus('pending');
       setActiveTrxId(trxId);
-      
+
       // Write pending transaction doc to Firestore
       await setDoc(trxDocRef, {
         status: 'pending',
@@ -489,7 +489,7 @@ export default function Photobooth() {
           lensEffect
         );
         const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
-        
+
         // Convert to Blob for both download and storage upload
         blob = await new Promise<Blob>((resolve) => {
           cvs.toBlob((b) => resolve(b!), mime, format === 'jpg' ? 0.80 : undefined);
@@ -700,7 +700,7 @@ export default function Photobooth() {
                   <div className="bg-[#111] border border-[#222] rounded-lg p-3.5 flex items-center justify-between gap-4 shadow-2xl relative overflow-hidden select-none">
                     {/* Retro tape stripes */}
                     <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-amber-500 to-indigo-500 opacity-20" />
-                    
+
                     {/* Cassette layout reels */}
                     <div className="flex items-center gap-3.5">
                       <div className="flex items-center justify-center relative w-11 h-7 bg-stone-900 border border-stone-800 rounded-xs overflow-hidden">
@@ -714,7 +714,7 @@ export default function Photobooth() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-col justify-center text-left">
                         <p className="text-[9px] uppercase font-mono tracking-wider text-stone-500">Lo-Fi Ambient</p>
                         <p className="text-[10px] uppercase font-bold tracking-widest text-[#eaeaea] font-mono">SOL TAPE 01</p>
@@ -868,8 +868,8 @@ export default function Photobooth() {
                             activeLayoutId === layout.id
                               ? "border-white bg-white/5 text-white"
                               : locked
-                              ? "border-[#222] hover:border-amber-500/50 text-[#888] hover:text-amber-500"
-                              : "border-[#222] hover:border-[#444] text-[#888] hover:text-white"
+                                ? "border-[#222] hover:border-amber-500/50 text-[#888] hover:text-amber-500"
+                                : "border-[#222] hover:border-[#444] text-[#888] hover:text-white"
                           )}
                           title={layout.name}
                         >
@@ -987,7 +987,7 @@ export default function Photobooth() {
                 <div className="bg-[#111] border border-[#222] rounded-lg p-3.5 flex items-center justify-between gap-4 shadow-2xl relative overflow-hidden select-none">
                   {/* Retro tape stripes */}
                   <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-amber-500 to-indigo-500 opacity-20" />
-                  
+
                   {/* Cassette layout reels */}
                   <div className="flex items-center gap-3.5">
                     <div className="flex items-center justify-center relative w-11 h-7 bg-stone-900 border border-stone-800 rounded-xs overflow-hidden">
@@ -1000,7 +1000,7 @@ export default function Photobooth() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col justify-center text-left">
                       <p className="text-[9px] uppercase font-mono tracking-wider text-stone-500">Lo-Fi Ambient</p>
                       <p className="text-[10px] uppercase font-bold tracking-widest text-[#eaeaea] font-mono">SOL TAPE 01</p>
@@ -1152,7 +1152,7 @@ export default function Photobooth() {
             <aside className="w-full md:w-80 bg-[#0f0f0f] md:border-r border-[#2a2a2a] p-6 md:p-8 flex flex-col shrink-0 overflow-y-auto">
               <div className="mb-6">
                 <h1 className="font-serif text-3xl italic tracking-tight text-white mb-1">S.O.L</h1>
-                <p className="text-[9px] uppercase tracking-[0.16em] text-[#888]">SNAP OF LOVE ARCHIVES</p>
+                <p className="text-[9px] uppercase tracking-[0.16em] text-[#888]">SNAP OF LOVE STUDIO</p>
               </div>
 
               <div className="space-y-6 flex-grow">
@@ -1214,7 +1214,7 @@ export default function Photobooth() {
                         isAnimatedPreview ? "text-black" : "text-stone-400 hover:text-stone-200"
                       )}
                     >
-                      Live Digital
+                      GIF PREVIEW
                     </button>
                   </div>
                   <p className="text-[9px] text-[#555] mt-2 font-serif italic">
@@ -1254,7 +1254,7 @@ export default function Photobooth() {
 
                 {/* 3. Dynamic Realtime Filters adjustment */}
                 <section className="pt-4 border-t border-[#222] space-y-4">
-                  <label className="text-[11px] uppercase tracking-widest text-[#888] font-semibold block">Post-Processing Aesthetics</label>
+                  <label className="text-[11px] uppercase tracking-widest text-[#888] font-semibold block">CHOOSE YOUR EFFECTS!</label>
 
                   {/* Realtime filter dropdown option */}
                   <div className="space-y-1.5">
@@ -1285,7 +1285,7 @@ export default function Photobooth() {
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <span className="text-[11px]">Nostalgic Camera Date Stamp</span>
+                    <span className="text-[11px]">Nostalgic Date Stamp</span>
                     <button
                       onClick={() => setShowDate(!showDate)}
                       className={cn(
@@ -1367,7 +1367,7 @@ export default function Photobooth() {
                   <div className="bg-[#111] border border-[#222] rounded-lg p-3.5 flex items-center justify-between gap-4 shadow-2xl relative overflow-hidden select-none">
                     {/* Retro tape stripes */}
                     <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-amber-500 to-indigo-500 opacity-20" />
-                    
+
                     {/* Cassette layout reels */}
                     <div className="flex items-center gap-3.5">
                       <div className="flex items-center justify-center relative w-11 h-7 bg-stone-900 border border-stone-800 rounded-xs overflow-hidden">
@@ -1380,7 +1380,7 @@ export default function Photobooth() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-col justify-center text-left">
                         <p className="text-[9px] uppercase font-mono tracking-wider text-stone-500">Lo-Fi Ambient</p>
                         <p className="text-[10px] uppercase font-bold tracking-widest text-[#eaeaea] font-mono">SOL TAPE 01</p>
@@ -1646,7 +1646,7 @@ export default function Photobooth() {
                           className="w-32 h-32 select-none"
                         />
                       </div>
-                      
+
                       <div className="space-y-1">
                         <p className="text-[10px] text-stone-300 uppercase tracking-widest font-bold">
                           Scan to download on mobile
@@ -1665,8 +1665,8 @@ export default function Photobooth() {
                           onClick={copyShareLink}
                           className={cn(
                             "px-4 py-2 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer rounded-none border-l border-stone-800",
-                            copied 
-                              ? "bg-amber-500 text-black hover:bg-amber-400" 
+                            copied
+                              ? "bg-amber-500 text-black hover:bg-amber-400"
                               : "bg-[#161616] text-white hover:bg-stone-800"
                           )}
                         >
