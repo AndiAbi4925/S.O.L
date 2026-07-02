@@ -153,6 +153,8 @@ export default function Photobooth() {
   const [restoreCode, setRestoreCode] = useState<string>('');
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [restoreSuccess, setRestoreSuccess] = useState<boolean>(false);
+  const [senderNameInput, setSenderNameInput] = useState<string>('');
+  const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
 
   // Real-time listener for current transaction status
   useEffect(() => {
@@ -182,25 +184,50 @@ export default function Photobooth() {
     return () => unsubscribe();
   }, [activeTrxId]);
 
+  const generateShortId = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let result = 'SOL-';
+    for (let i = 0; i < 4; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
   const startPremiumCheckout = async () => {
     playTick();
-    const trxCol = collection(db, 'transactions');
-    const trxDocRef = doc(trxCol);
-    const trxId = trxDocRef.id;
+    const shortId = generateShortId();
+    const trxDocRef = doc(db, 'transactions', shortId);
+    setSenderNameInput('');
+    setSubmitSuccess(false);
 
     try {
       setTrxStatus('pending');
-      setActiveTrxId(trxId);
+      setActiveTrxId(shortId);
 
       // Write pending transaction doc to Firestore
       await setDoc(trxDocRef, {
         status: 'pending',
         amount: 15000,
         currency: 'IDR',
-        createdAt: new Date()
+        createdAt: new Date(),
+        senderName: ''
       });
     } catch (e) {
       console.error('Failed to create transaction:', e);
+    }
+  };
+
+  const submitSenderName = async () => {
+    if (!activeTrxId || !senderNameInput.trim()) return;
+    playTick();
+    try {
+      const trxDocRef = doc(db, 'transactions', activeTrxId);
+      await setDoc(trxDocRef, {
+        senderName: senderNameInput.trim()
+      }, { merge: true });
+      setSubmitSuccess(true);
+    } catch (e) {
+      console.error('Failed to submit sender name:', e);
     }
   };
 
@@ -228,18 +255,19 @@ export default function Photobooth() {
     setRestoreError(null);
     setRestoreSuccess(false);
 
-    if (!restoreCode.trim()) {
+    const code = restoreCode.trim().toUpperCase();
+    if (!code) {
       setRestoreError('Please enter a transaction ID.');
       return;
     }
 
     try {
-      const trxRef = doc(db, 'transactions', restoreCode.trim());
+      const trxRef = doc(db, 'transactions', code);
       const docSnap = await getDoc(trxRef);
       if (docSnap.exists() && docSnap.data().status === 'settled') {
         setIsPremium(true);
         localStorage.setItem('sol_premium', 'true');
-        localStorage.setItem('sol_premium_trx', restoreCode.trim());
+        localStorage.setItem('sol_premium_trx', code);
         setRestoreSuccess(true);
         setRestoreCode('');
         setTimeout(() => {
@@ -1503,40 +1531,72 @@ export default function Photobooth() {
                     </div>
                   ) : activeTrxId ? (
                     <div className="w-full flex flex-col items-center gap-4">
-                      {/* Fake QRIS QR Code display */}
-                      <div className="relative bg-white p-3 rounded-lg shadow-xl inline-block border border-amber-500/20">
+                      {/* Real QRIS Image */}
+                      <div className="relative bg-white p-2.5 rounded-lg shadow-xl inline-block border border-amber-500/20 max-w-[220px]">
                         <img
-                          src={getQrCodeDataUrl(`https://s-o-l.vercel.app/pay?trx=${activeTrxId}`)}
-                          alt="QRIS QR Code"
-                          className="w-36 h-36 select-none"
+                          src="/qris.png"
+                          alt="QRIS Payment QR"
+                          className="w-full h-auto select-none"
                         />
                       </div>
 
-                      {/* Transaction ID & Status badge */}
-                      <div className="space-y-1.5 w-full text-center">
+                      {/* Transaction ID & Instructions */}
+                      <div className="space-y-2 w-full text-center">
                         <p className="text-[10px] text-stone-300 uppercase tracking-widest font-bold flex items-center justify-center gap-1.5">
                           <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                           </span>
-                          Waiting for payment
+                          Scan to Pay Rp 15,000
                         </p>
-                        <div className="text-[9px] text-stone-500 bg-[#0e0e0e] border border-stone-900 px-2 py-1 rounded select-all font-mono break-all">
-                          TRX ID: {activeTrxId}
+                        <div className="text-[10px] text-stone-300 bg-[#0e0e0e] border border-stone-900 px-2.5 py-1.5 rounded select-all font-mono break-all font-bold">
+                          REF ID: {activeTrxId}
                         </div>
-                        <p className="text-[8px] text-stone-500 max-w-[280px] mx-auto leading-relaxed">
-                          Scan with bank or payment app, or copy this TRX ID to restore later.
+                        <p className="text-[8.5px] text-stone-400 max-w-[280px] mx-auto leading-relaxed">
+                          Scan the QRIS above with GoPay or any payment app. Submit your sender name below so we can instantly verify the transaction.
                         </p>
                       </div>
 
-                      {/* Sandbox simulation trigger button */}
-                      <button
-                        onClick={simulatePaymentSuccess}
-                        className="w-full mt-2 py-2.5 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 rounded-sm cursor-pointer shadow-md border-0"
-                      >
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        Simulate Payment (Sandbox)
-                      </button>
+                      {/* Sender Name Submission Form */}
+                      <div className="w-full text-left bg-black/40 border border-stone-850 p-3 rounded-md space-y-2.5 font-mono">
+                        <label className="text-[8.5px] uppercase tracking-wider text-stone-400 block font-bold">
+                          Sender Account Name:
+                        </label>
+                        {submitSuccess ? (
+                          <div className="text-[9.5px] text-emerald-400 bg-emerald-950/20 border border-emerald-900/30 py-1.5 px-2.5 rounded-sm flex items-center gap-1.5">
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            Submitted successfully! Verification pending...
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="e.g. GoPay Name"
+                              value={senderNameInput}
+                              onChange={(e) => setSenderNameInput(e.target.value)}
+                              className="flex-1 bg-[#121212] border border-stone-800 text-xs font-mono py-1.5 px-2.5 text-white focus:outline-none focus:border-stone-600 rounded-sm animate-in fade-in"
+                            />
+                            <button
+                              type="button"
+                              onClick={submitSenderName}
+                              disabled={!senderNameInput.trim()}
+                              className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:bg-stone-800 disabled:text-stone-500 text-black text-[9px] font-bold uppercase tracking-wider transition-colors rounded-sm cursor-pointer border-0 font-bold"
+                            >
+                              Submit
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Developer Sandbox simulation trigger button */}
+                      <div className="pt-2 w-full border-t border-stone-900 flex justify-center">
+                        <button
+                          onClick={simulatePaymentSuccess}
+                          className="text-[8px] text-stone-600 hover:text-amber-500 transition-colors uppercase tracking-widest underline border-0 bg-transparent cursor-pointer"
+                        >
+                          Simulate Payment (Dev Sandbox)
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div className="py-6 flex flex-col items-center gap-3">
