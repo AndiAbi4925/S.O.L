@@ -711,7 +711,7 @@ export default function Photobooth() {
 
               {/* Start CTA & BGM Player */}
               <div className="flex flex-col gap-6">
-                <div>
+                <div className="flex flex-wrap gap-4">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -721,6 +721,21 @@ export default function Photobooth() {
                     <Camera className="w-4 h-4 transition-transform group-hover:rotate-12" />
                     Enter Studio
                   </motion.button>
+
+                  {!isPremium && (
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setShowPremiumModal(true);
+                        startPremiumCheckout();
+                      }}
+                      className="px-6 py-5 border border-amber-500/40 text-amber-500 hover:border-amber-400 hover:bg-amber-500/5 rounded-none text-xs font-bold uppercase tracking-[0.3em] shadow-xl flex items-center justify-center gap-2 group transition-colors cursor-pointer animate-in fade-in duration-500"
+                    >
+                      <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
+                      Get Premium
+                    </motion.button>
+                  )}
                 </div>
 
                 {/* Cassette BGM Deck */}
@@ -948,6 +963,18 @@ export default function Photobooth() {
                       );
                     })}
                   </div>
+                  {!isPremium && (
+                    <button
+                      onClick={() => {
+                        setShowPremiumModal(true);
+                        startPremiumCheckout();
+                      }}
+                      className="w-full mt-3 py-2.5 bg-gradient-to-r from-amber-500/10 to-amber-700/10 border border-amber-500/30 hover:border-amber-500/60 text-amber-500 text-[10px] font-bold uppercase tracking-wider rounded-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer font-bold"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      Get Premium Pass (Rp 15,000)
+                    </button>
+                  )}
                 </section>
 
                 {/* 2. Photo Timer Pose Delay */}
