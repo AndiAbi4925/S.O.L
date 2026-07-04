@@ -662,7 +662,7 @@ export default function Photobooth() {
   };
 
   return (
-    <div className="h-[100dvh] w-screen overflow-hidden bg-[#080808] text-[#e0e0e0] font-sans flex flex-col items-center justify-center select-none relative md:p-4">
+    <div className="h-[100dvh] w-screen overflow-y-auto md:overflow-hidden overflow-x-hidden bg-[#080808] text-[#e0e0e0] font-sans flex flex-col items-center justify-center select-none relative md:p-4">
 
       {/* Background Ambience Light Glows (Corner Edges) */}
       <div className="absolute -top-[200px] -left-[200px] w-[500px] h-[500px] bg-[#8e1616] rounded-full blur-[140px] pointer-events-none z-0 animate-ambient-1" />
@@ -857,7 +857,7 @@ export default function Photobooth() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="w-full min-h-[100dvh] md:min-h-0 md:h-[92vh] max-w-7xl flex flex-col md:flex-row bg-[#0c0c0c] border md:border-8 border-[#1a1a1a] shadow-3xl z-10 relative overflow-hidden shrink-0"
+            className="w-full min-h-[100dvh] md:min-h-0 md:h-[92vh] max-w-7xl flex flex-col md:flex-row bg-[#0c0c0c] border md:border-8 border-[#1a1a1a] shadow-3xl z-10 relative overflow-y-auto md:overflow-hidden shrink-0"
           >
             {/* BACK TO MENU / BRAND HEADER BAR (MOBILE) */}
             <div className="md:hidden flex justify-between items-center px-6 py-4 bg-[#0f0f0f] border-b border-[#222] order-1">
@@ -1201,7 +1201,7 @@ export default function Photobooth() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="w-full min-h-[100dvh] md:min-h-0 md:h-[92vh] max-w-7xl flex flex-col-reverse md:flex-row bg-[#0c0c0c] border md:border-8 border-[#1a1a1a] shadow-3xl z-10 relative overflow-hidden shrink-0 animate-in fade-in duration-300"
+            className="w-full min-h-[100dvh] md:min-h-0 md:h-[92vh] max-w-7xl flex flex-col-reverse md:flex-row bg-[#0c0c0c] border md:border-8 border-[#1a1a1a] shadow-3xl z-10 relative overflow-y-auto md:overflow-hidden shrink-0 animate-in fade-in duration-300"
           >
             {/* Sidebar controls for POST-PROCESSING */}
             <aside className="w-full md:w-80 bg-[#0f0f0f] md:border-r border-[#2a2a2a] p-6 md:p-8 flex flex-col shrink-0 overflow-y-auto">
@@ -1498,7 +1498,7 @@ export default function Photobooth() {
         {/* Premium Checkout Modal */}
         <AnimatePresence>
           {showPremiumModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
               {/* Backdrop */}
               <motion.div
                 initial={{ opacity: 0 }}
@@ -1676,7 +1676,7 @@ export default function Photobooth() {
         {/* Thank You / Feedback Popup Modal (Triggered on Export) */}
         <AnimatePresence>
           {showThankYouPopup && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
               {/* Backdrop overlay */}
               <motion.div
                 initial={{ opacity: 0 }}
@@ -1816,7 +1816,7 @@ export default function Photobooth() {
         {/* Fullscreen Countdown Ad Overlay */}
         <AnimatePresence>
           {showAdOverlay && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
               {/* Backdrop */}
               <motion.div
                 initial={{ opacity: 0 }}
