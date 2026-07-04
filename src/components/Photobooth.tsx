@@ -872,7 +872,7 @@ export default function Photobooth() {
             </div>
 
             {/* Workspace Sidebar controls */}
-            <aside className="w-full md:w-80 bg-[#0f0f0f] md:border-r border-[#2a2a2a] p-6 md:p-8 flex flex-col shrink-0 overflow-y-auto order-3 md:order-1">
+            <aside className="w-full md:w-80 bg-[#0f0f0f] md:border-r border-[#2a2a2a] p-6 md:p-8 flex flex-col shrink-0 md:overflow-y-auto order-3 md:order-1">
 
               {/* Back to main landing */}
               <button
@@ -1204,7 +1204,7 @@ export default function Photobooth() {
             className="w-full min-h-[100dvh] md:min-h-0 md:h-[92vh] max-w-7xl flex flex-col-reverse md:flex-row bg-[#0c0c0c] border md:border-8 border-[#1a1a1a] shadow-3xl z-10 relative overflow-y-auto md:overflow-hidden shrink-0 animate-in fade-in duration-300"
           >
             {/* Sidebar controls for POST-PROCESSING */}
-            <aside className="w-full md:w-80 bg-[#0f0f0f] md:border-r border-[#2a2a2a] p-6 md:p-8 flex flex-col shrink-0 overflow-y-auto">
+            <aside className="w-full md:w-80 bg-[#0f0f0f] md:border-r border-[#2a2a2a] p-6 md:p-8 flex flex-col shrink-0 md:overflow-y-auto">
               <div className="mb-6">
                 <h1 className="font-serif text-3xl italic tracking-tight text-white mb-1">S.O.L</h1>
                 <p className="text-[9px] uppercase tracking-[0.16em] text-[#888]">SNAP OF LOVE STUDIO</p>
