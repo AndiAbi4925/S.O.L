@@ -284,7 +284,7 @@ export default function Photobooth() {
   };
 
   const isLocked = (layoutId: string) => {
-    return (layoutId === 'scrapbook' || layoutId === 'filmstrip') && !isPremium;
+    return false;
   };
 
   const getQrCodeDataUrl = (url: string) => {
@@ -730,10 +730,10 @@ export default function Photobooth() {
                         setShowPremiumModal(true);
                         startPremiumCheckout();
                       }}
-                      className="px-6 py-5 border border-amber-500/40 text-amber-500 hover:border-amber-400 hover:bg-amber-500/5 rounded-none text-xs font-bold uppercase tracking-[0.3em] shadow-xl flex items-center justify-center gap-2 group transition-colors cursor-pointer animate-in fade-in duration-500"
+                      className="px-6 py-5 border border-rose-500/40 text-rose-500 hover:border-rose-400 hover:bg-rose-500/5 rounded-none text-xs font-bold uppercase tracking-[0.3em] shadow-xl flex items-center justify-center gap-2 group transition-colors cursor-pointer animate-in fade-in duration-500"
                     >
-                      <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
-                      Get Premium
+                      <Heart className="w-4 h-4 text-rose-500 animate-pulse" />
+                      Support Creator
                     </motion.button>
                   )}
                 </div>
@@ -969,10 +969,10 @@ export default function Photobooth() {
                         setShowPremiumModal(true);
                         startPremiumCheckout();
                       }}
-                      className="w-full mt-3 py-2.5 bg-gradient-to-r from-amber-500/10 to-amber-700/10 border border-amber-500/30 hover:border-amber-500/60 text-amber-500 text-[10px] font-bold uppercase tracking-wider rounded-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer font-bold"
+                      className="w-full mt-3 py-2.5 bg-gradient-to-r from-rose-500/10 to-rose-700/10 border border-rose-500/30 hover:border-rose-500/60 text-rose-500 text-[10px] font-bold uppercase tracking-wider rounded-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer font-bold"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                      Get Premium Pass (Rp 15,000)
+                      <Heart className="w-3.5 h-3.5 text-rose-500" />
+                      Support the Creator (Rp 15,000)
                     </button>
                   )}
                 </section>
@@ -1531,35 +1531,35 @@ export default function Photobooth() {
                 )}
 
                 <div className="space-y-2">
-                  <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-1">
-                    <Sparkles className="w-5 h-5 text-amber-500 animate-pulse" />
+                  <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto mb-1">
+                    <Heart className="w-5 h-5 text-rose-500 animate-pulse" />
                   </div>
-                  <h2 className="font-serif text-2xl italic text-white leading-none">S.O.L Premium</h2>
+                  <h2 className="font-serif text-2xl italic text-white leading-none">Support S.O.L Creator</h2>
                   <p className="text-[9px] uppercase tracking-[0.2em] text-stone-500">
-                    Unlock Premium Presets
+                    Voluntary Tip Jar & Ad-Free Pass
                   </p>
                 </div>
 
                 {/* QRIS / Checkout content */}
                 <div className="bg-[#181818] border border-stone-800/80 p-5 rounded-lg flex flex-col items-center gap-4 relative overflow-hidden animate-in fade-in duration-300">
-                  <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-700 opacity-60" />
+                  <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-rose-500 via-pink-500 to-rose-700 opacity-60" />
 
                   {trxStatus === 'settled' ? (
                     <div className="py-6 flex flex-col items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-                        <Check className="w-6 h-6" />
+                        <Heart className="w-5 h-5 fill-emerald-500/30" />
                       </div>
                       <p className="text-xs text-emerald-400 uppercase tracking-widest font-bold">
-                        [ PAYMENT SETTLED ]
+                        [ DONATION RECEIVED ]
                       </p>
-                      <p className="text-[10px] text-stone-400">
-                        Premium presets unlocked successfully!
+                      <p className="text-[10px] text-stone-450 leading-relaxed max-w-[280px] mx-auto">
+                        Thank you so much for supporting S.O.L! All ads are now permanently disabled.
                       </p>
                     </div>
                   ) : activeTrxId ? (
                     <div className="w-full flex flex-col items-center gap-4">
                       {/* Real QRIS Image */}
-                      <div className="relative bg-white p-2.5 rounded-lg shadow-xl inline-block border border-amber-500/20 max-w-[220px]">
+                      <div className="relative bg-white p-2.5 rounded-lg shadow-xl inline-block border border-rose-500/20 max-w-[220px]">
                         <img
                           src="/qris.png"
                           alt="QRIS Payment QR"
@@ -1571,16 +1571,16 @@ export default function Photobooth() {
                       <div className="space-y-2 w-full text-center">
                         <p className="text-[10px] text-stone-300 uppercase tracking-widest font-bold flex items-center justify-center gap-1.5">
                           <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
                           </span>
-                          Scan to Pay Rp 15,000
+                          Support S.O.L with Rp 15,000
                         </p>
                         <div className="text-[10px] text-stone-300 bg-[#0e0e0e] border border-stone-900 px-2.5 py-1.5 rounded select-all font-mono break-all font-bold">
                           REF ID: {activeTrxId}
                         </div>
                         <p className="text-[8.5px] text-stone-400 max-w-[280px] mx-auto leading-relaxed">
-                          Scan the QRIS above with GoPay or any payment app. Submit your sender name below so we can instantly verify the transaction.
+                          Scan the QRIS above with GoPay or any payment app. Submit your sender name below so we can verify. As a thank-you, all ads will be disabled forever once settled!
                         </p>
                       </div>
 
@@ -1607,7 +1607,7 @@ export default function Photobooth() {
                               type="button"
                               onClick={submitSenderName}
                               disabled={!senderNameInput.trim()}
-                              className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:bg-stone-800 disabled:text-stone-500 text-black text-[9px] font-bold uppercase tracking-wider transition-colors rounded-sm cursor-pointer border-0 font-bold"
+                              className="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-450 disabled:bg-stone-800 disabled:text-stone-500 text-black text-[9px] font-bold uppercase tracking-wider transition-colors rounded-sm cursor-pointer border-0 font-bold"
                             >
                               Submit
                             </button>
@@ -1619,7 +1619,7 @@ export default function Photobooth() {
                       <div className="pt-2 w-full border-t border-stone-900 flex justify-center">
                         <button
                           onClick={simulatePaymentSuccess}
-                          className="text-[8px] text-stone-600 hover:text-amber-500 transition-colors uppercase tracking-widest underline border-0 bg-transparent cursor-pointer"
+                          className="text-[8px] text-stone-600 hover:text-rose-500 transition-colors uppercase tracking-widest underline border-0 bg-transparent cursor-pointer"
                         >
                           Simulate Payment (Dev Sandbox)
                         </button>
@@ -1627,7 +1627,7 @@ export default function Photobooth() {
                     </div>
                   ) : (
                     <div className="py-6 flex flex-col items-center gap-3">
-                      <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+                      <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
                       <p className="text-[10px] text-stone-400 uppercase tracking-widest leading-relaxed">
                         Initializing transaction...
                       </p>
@@ -1639,7 +1639,7 @@ export default function Photobooth() {
                 {trxStatus !== 'settled' && (
                   <form onSubmit={handleRestorePurchase} className="border-t border-stone-900 pt-5 space-y-3">
                     <label className="text-[10px] uppercase tracking-wider text-stone-400 block text-left">
-                      Restore Premium Access
+                      Restore Support/Ad-Free Pass
                     </label>
                     <div className="flex gap-2">
                       <input
@@ -1660,7 +1660,7 @@ export default function Photobooth() {
                       <p className="text-[9px] text-red-500 text-left font-mono">{restoreError}</p>
                     )}
                     {restoreSuccess && (
-                      <p className="text-[9px] text-emerald-400 text-left font-mono">Premium access restored!</p>
+                      <p className="text-[9px] text-emerald-400 text-left font-mono">Ad-free pass restored successfully!</p>
                     )}
                   </form>
                 )}
