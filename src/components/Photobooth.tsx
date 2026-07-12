@@ -573,6 +573,74 @@ export default function Photobooth() {
       // Upload to Cloud Firestore (Base64 direct storage for 100% free plan compliance)
       (async () => {
         try {
+          let uploadBlob = blob;
+
+          // If the format is image, downscale it to max 900px and compress as JPEG to ensure < 1MB limit
+          if (format === 'jpg' || format === 'png') {
+            const tempImg = new Image();
+            await new Promise((resolve, reject) => {
+              tempImg.onload = resolve;
+              tempImg.onerror = reject;
+              tempImg.src = url;
+            });
+
+            const shareCvs = document.createElement('canvas');
+            const maxDim = 900;
+            let sw = tempImg.width;
+            let sh = tempImg.height;
+            if (sw > maxDim || sh > maxDim) {
+              if (sw > sh) {
+                sh = Math.round((sh * maxDim) / sw);
+                sw = maxDim;
+              } else {
+                sw = Math.round((sw * maxDim) / sh);
+                sh = maxDim;
+              }
+            }
+            shareCvs.width = sw;
+            shareCvs.height = sh;
+            const sCtx = shareCvs.getContext('2d');
+            if (sCtx) {
+              sCtx.drawImage(tempImg, 0, 0, sw, sh);
+            }
+
+            uploadBlob = await new Promise<Blob>((resolve) => {
+              shareCvs.toBlob((b) => resolve(b!), 'image/jpeg', 0.70); // keeps it ~80KB
+            });
+          } else if (format === 'gif') {
+            // For GIF, if the original blob is too large, we generate a highly optimized low-res preview GIF
+            if (blob.size > 850 * 1024) {
+              const frames: HTMLCanvasElement[] = [];
+              const activeLayout = LAYOUTS[activeLayoutId] || LAYOUTS['1x4'];
+              
+              // Generate the frames again, but with a lighter scale (e.g., 0.32)
+              const uploadScale = 0.32;
+              for (let i = 0; i < 5; i++) {
+                const f = renderStrip(
+                  capturedPhotos,
+                  activeLayout,
+                  grainIntensity,
+                  showDate,
+                  i,
+                  activeThemeId,
+                  activeFilterId,
+                  lensEffect
+                );
+                
+                const c = document.createElement('canvas');
+                c.width = f.width * uploadScale;
+                c.height = f.height * uploadScale;
+                const gc = c.getContext('2d');
+                if (gc) {
+                  gc.drawImage(f, 0, 0, c.width, c.height);
+                }
+                frames.push(c);
+              }
+              
+              uploadBlob = await createGifExporter(frames, frames[0].width, frames[0].height, 8);
+            }
+          }
+
           const getBase64 = (file: Blob): Promise<string> => {
             return new Promise((resolve, reject) => {
               const reader = new FileReader();
@@ -582,7 +650,7 @@ export default function Photobooth() {
             });
           };
 
-          const base64Image = await getBase64(blob);
+          const base64Image = await getBase64(uploadBlob);
 
           await setDoc(shareDocRef, {
             imageUrl: base64Image,
