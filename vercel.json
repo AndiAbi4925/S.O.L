@@ -3,15 +3,15 @@
   "rewrites": [
     {
       "source": "/share",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/pay",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/((?!assets/|favicon\\.png|favicon\\.ico|qris\\.png|.*\\..*$).*)",
-      "destination": "/index.html"
+      "destination": "/"
     }
   ]
 }
