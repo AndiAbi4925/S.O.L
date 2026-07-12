@@ -289,10 +289,10 @@ export default function Photobooth() {
 
   const getQrCodeDataUrl = (url: string) => {
     try {
-      const qr = qrcode(0, 'M');
+      const qr = qrcode(0, 'Q');
       qr.addData(url);
       qr.make();
-      return qr.createDataURL(4);
+      return qr.createDataURL(8);
     } catch (e) {
       console.error(e);
       return '';
@@ -591,8 +591,8 @@ export default function Photobooth() {
             createdAt: new Date()
           });
 
-          // Build sharing URL using env config if provided, otherwise window.location.origin
-          const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+          // Build sharing URL dynamically using window.location.origin to match the current domain
+          const baseUrl = window.location.origin;
           setShareUrl(`${baseUrl}/share?id=${docId}`);
         } catch (err) {
           console.error('Firebase cloud sync failed:', err);
