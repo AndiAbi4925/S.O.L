@@ -790,20 +790,18 @@ export default function Photobooth() {
                     Enter Studio
                   </motion.button>
 
-                  {!isPremium && (
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        setShowPremiumModal(true);
-                        startPremiumCheckout();
-                      }}
-                      className="px-6 py-5 border border-rose-500/40 text-rose-500 hover:border-rose-400 hover:bg-rose-500/5 rounded-none text-xs font-bold uppercase tracking-[0.3em] shadow-xl flex items-center justify-center gap-2 group transition-colors cursor-pointer animate-in fade-in duration-500"
-                    >
-                      <Heart className="w-4 h-4 text-rose-500 animate-pulse" />
-                      Support Creator
-                    </motion.button>
-                  )}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setShowPremiumModal(true);
+                      startPremiumCheckout();
+                    }}
+                    className="px-6 py-5 border border-rose-500/40 text-rose-500 hover:border-rose-400 hover:bg-rose-500/5 rounded-none text-xs font-bold uppercase tracking-[0.3em] shadow-xl flex items-center justify-center gap-2 group transition-colors cursor-pointer animate-in fade-in duration-500"
+                  >
+                    <Heart className="w-4 h-4 text-rose-500 animate-pulse" />
+                    Support Creator
+                  </motion.button>
                 </div>
 
                 {/* Cassette BGM Deck */}
@@ -1031,18 +1029,16 @@ export default function Photobooth() {
                       );
                     })}
                   </div>
-                  {!isPremium && (
-                    <button
-                      onClick={() => {
-                        setShowPremiumModal(true);
-                        startPremiumCheckout();
-                      }}
-                      className="w-full mt-3 py-2.5 bg-gradient-to-r from-rose-500/10 to-rose-700/10 border border-rose-500/30 hover:border-rose-500/60 text-rose-500 text-[10px] font-bold uppercase tracking-wider rounded-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer font-bold"
-                    >
-                      <Heart className="w-3.5 h-3.5 text-rose-500" />
-                      Support the Creator (Rp 15,000)
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      setShowPremiumModal(true);
+                      startPremiumCheckout();
+                    }}
+                    className="w-full mt-3 py-2.5 bg-gradient-to-r from-rose-500/10 to-rose-700/10 border border-rose-500/30 hover:border-rose-500/60 text-rose-500 text-[10px] font-bold uppercase tracking-wider rounded-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer font-bold"
+                  >
+                    <Heart className="w-3.5 h-3.5 text-rose-500" />
+                    Support the Creator (Rp 15,000)
+                  </button>
                 </section>
 
                 {/* 2. Photo Timer Pose Delay */}
