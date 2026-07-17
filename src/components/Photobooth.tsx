@@ -145,143 +145,9 @@ export default function Photobooth() {
   // Monetization States
   const [isPremium, setIsPremium] = useState<boolean>(() => localStorage.getItem('sol_premium') === 'true');
   const [showPremiumModal, setShowPremiumModal] = useState<boolean>(false);
-  const [activeTrxId, setActiveTrxId] = useState<string | null>(null);
-  const [trxStatus, setTrxStatus] = useState<'idle' | 'pending' | 'settled'>('idle');
   const [adCountdown, setAdCountdown] = useState<number>(0);
   const [showAdOverlay, setShowAdOverlay] = useState<boolean>(false);
   const [pendingExportFormat, setPendingExportFormat] = useState<'jpg' | 'png' | 'gif' | null>(null);
-  const [restoreCode, setRestoreCode] = useState<string>('');
-  const [restoreError, setRestoreError] = useState<string | null>(null);
-  const [restoreSuccess, setRestoreSuccess] = useState<boolean>(false);
-  const [senderNameInput, setSenderNameInput] = useState<string>('');
-  const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
-
-  // Real-time listener for current transaction status
-  useEffect(() => {
-    if (!activeTrxId) return;
-
-    const trxRef = doc(db, 'transactions', activeTrxId);
-    const unsubscribe = onSnapshot(trxRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.status === 'settled') {
-          playDing();
-          setIsPremium(true);
-          localStorage.setItem('sol_premium', 'true');
-          localStorage.setItem('sol_premium_trx', activeTrxId);
-          setTrxStatus('settled');
-          setTimeout(() => {
-            setShowPremiumModal(false);
-            setTrxStatus('idle');
-            setActiveTrxId(null);
-          }, 2000);
-        } else {
-          setTrxStatus('pending');
-        }
-      }
-    });
-
-    return () => unsubscribe();
-  }, [activeTrxId]);
-
-  const generateShortId = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let result = 'SOL-';
-    for (let i = 0; i < 4; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  };
-
-  const startPremiumCheckout = async () => {
-    playTick();
-    const shortId = generateShortId();
-    const trxDocRef = doc(db, 'transactions', shortId);
-    setSenderNameInput('');
-    setSubmitSuccess(false);
-
-    try {
-      setTrxStatus('pending');
-      setActiveTrxId(shortId);
-
-      // Write pending transaction doc to Firestore
-      await setDoc(trxDocRef, {
-        status: 'pending',
-        amount: 15000,
-        currency: 'IDR',
-        createdAt: new Date(),
-        senderName: ''
-      });
-    } catch (e) {
-      console.error('Failed to create transaction:', e);
-    }
-  };
-
-  const submitSenderName = async () => {
-    if (!activeTrxId || !senderNameInput.trim()) return;
-    playTick();
-    try {
-      const trxDocRef = doc(db, 'transactions', activeTrxId);
-      await setDoc(trxDocRef, {
-        senderName: senderNameInput.trim()
-      }, { merge: true });
-      setSubmitSuccess(true);
-    } catch (e) {
-      console.error('Failed to submit sender name:', e);
-    }
-  };
-
-  const simulatePaymentSuccess = async () => {
-    if (!activeTrxId) return;
-    playTick();
-    try {
-      const trxDocRef = doc(db, 'transactions', activeTrxId);
-      await setDoc(trxDocRef, {
-        status: 'settled',
-        amount: 15000,
-        currency: 'IDR',
-        createdAt: new Date(),
-        settledAt: new Date(),
-        simulated: true
-      }, { merge: true });
-    } catch (e) {
-      console.error('Failed to simulate payment:', e);
-    }
-  };
-
-  const handleRestorePurchase = async (e: React.FormEvent) => {
-    e.preventDefault();
-    playTick();
-    setRestoreError(null);
-    setRestoreSuccess(false);
-
-    const code = restoreCode.trim().toUpperCase();
-    if (!code) {
-      setRestoreError('Please enter a transaction ID.');
-      return;
-    }
-
-    try {
-      const trxRef = doc(db, 'transactions', code);
-      const docSnap = await getDoc(trxRef);
-      if (docSnap.exists() && docSnap.data().status === 'settled') {
-        setIsPremium(true);
-        localStorage.setItem('sol_premium', 'true');
-        localStorage.setItem('sol_premium_trx', code);
-        setRestoreSuccess(true);
-        setRestoreCode('');
-        setTimeout(() => {
-          setShowPremiumModal(false);
-          setRestoreSuccess(false);
-        }, 2000);
-      } else {
-        setRestoreError('ID not found or not yet settled.');
-      }
-    } catch (err) {
-      console.error(err);
-      setRestoreError('Error connecting to restore database.');
-    }
-  };
 
   const isLocked = (layoutId: string) => {
     return false;
@@ -795,7 +661,6 @@ export default function Photobooth() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
                       setShowPremiumModal(true);
-                      startPremiumCheckout();
                     }}
                     className="px-6 py-5 border border-rose-500/40 text-rose-500 hover:border-rose-400 hover:bg-rose-500/5 rounded-none text-xs font-bold uppercase tracking-[0.3em] shadow-xl flex items-center justify-center gap-2 group transition-colors cursor-pointer animate-in fade-in duration-500"
                   >
@@ -965,12 +830,7 @@ export default function Photobooth() {
                           key={layout.id}
                           disabled={captureState === 'countdown' || captureState === 'capturing'}
                           onClick={() => {
-                            if (locked) {
-                              setShowPremiumModal(true);
-                              startPremiumCheckout();
-                            } else {
-                              setActiveLayoutId(layout.id);
-                            }
+                            setActiveLayoutId(layout.id);
                           }}
                           className={cn(
                             "aspect-square border flex flex-col gap-1 p-1.5 items-center justify-center transition-all disabled:opacity-30 rounded-xs cursor-pointer relative",
@@ -1032,7 +892,6 @@ export default function Photobooth() {
                   <button
                     onClick={() => {
                       setShowPremiumModal(true);
-                      startPremiumCheckout();
                     }}
                     className="w-full mt-3 py-2.5 bg-gradient-to-r from-rose-500/10 to-rose-700/10 border border-rose-500/30 hover:border-rose-500/60 text-rose-500 text-[10px] font-bold uppercase tracking-wider rounded-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer font-bold"
                   >
@@ -1557,9 +1416,7 @@ export default function Photobooth() {
               )}
             </main>
           </motion.div>
-        )}
-
-        {/* Premium Checkout Modal */}
+        )}        {/* Premium Checkout Modal */}
         <AnimatePresence>
           {showPremiumModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
@@ -1568,11 +1425,7 @@ export default function Photobooth() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                onClick={() => {
-                  if (trxStatus !== 'settled') {
-                    setShowPremiumModal(false);
-                  }
-                }}
+                onClick={() => setShowPremiumModal(false)}
                 className="absolute inset-0 bg-black/85 backdrop-blur-md"
               />
 
@@ -1582,17 +1435,15 @@ export default function Photobooth() {
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.95, opacity: 0, y: 20 }}
                 transition={{ type: "spring", duration: 0.5 }}
-                className="relative w-full max-w-md bg-[#121212] border border-stone-800 rounded-xl p-6 md:p-8 text-center space-y-6 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.9)] z-10 font-mono"
+                className="relative w-full max-w-sm bg-[#121212] border border-stone-800 rounded-xl p-6 md:p-8 text-center space-y-6 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.9)] z-10 font-mono"
               >
                 {/* Close Button */}
-                {trxStatus !== 'settled' && (
-                  <button
-                    onClick={() => setShowPremiumModal(false)}
-                    className="absolute top-4 right-4 text-stone-500 hover:text-white transition-colors text-lg cursor-pointer border-0 bg-transparent"
-                  >
-                    ✕
-                  </button>
-                )}
+                <button
+                  onClick={() => setShowPremiumModal(false)}
+                  className="absolute top-4 right-4 text-stone-500 hover:text-white transition-colors text-lg cursor-pointer border-0 bg-transparent"
+                >
+                  ✕
+                </button>
 
                 <div className="space-y-2">
                   <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto mb-1">
@@ -1600,7 +1451,7 @@ export default function Photobooth() {
                   </div>
                   <h2 className="font-serif text-2xl italic text-white leading-none">Support S.O.L Creator</h2>
                   <p className="text-[9px] uppercase tracking-[0.2em] text-stone-500">
-                    Voluntary Tip Jar & Ad-Free Pass
+                    Voluntary Tip Jar
                   </p>
                 </div>
 
@@ -1608,129 +1459,47 @@ export default function Photobooth() {
                 <div className="bg-[#181818] border border-stone-800/80 p-5 rounded-lg flex flex-col items-center gap-4 relative overflow-hidden animate-in fade-in duration-300">
                   <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-rose-500 via-pink-500 to-rose-700 opacity-60" />
 
-                  {trxStatus === 'settled' ? (
-                    <div className="py-6 flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-                        <Heart className="w-5 h-5 fill-emerald-500/30" />
-                      </div>
-                      <p className="text-xs text-emerald-400 uppercase tracking-widest font-bold">
-                        [ DONATION RECEIVED ]
-                      </p>
-                      <p className="text-[10px] text-stone-450 leading-relaxed max-w-[280px] mx-auto">
-                        Thank you so much for supporting S.O.L! All ads are now permanently disabled.
-                      </p>
+                  <div className="w-full flex flex-col items-center gap-4">
+                    {/* Real QRIS Image */}
+                    <div className="relative bg-white p-2.5 rounded-lg shadow-xl inline-block border border-rose-500/20 max-w-[200px]">
+                      <img
+                        src="/qris.png"
+                        alt="QRIS Payment QR"
+                        className="w-full h-auto select-none"
+                      />
                     </div>
-                  ) : activeTrxId ? (
-                    <div className="w-full flex flex-col items-center gap-4">
-                      {/* Real QRIS Image */}
-                      <div className="relative bg-white p-2.5 rounded-lg shadow-xl inline-block border border-rose-500/20 max-w-[220px]">
-                        <img
-                          src="/qris.png"
-                          alt="QRIS Payment QR"
-                          className="w-full h-auto select-none"
-                        />
-                      </div>
 
-                      {/* Transaction ID & Instructions */}
-                      <div className="space-y-2 w-full text-center">
-                        <p className="text-[10px] text-stone-300 uppercase tracking-widest font-bold flex items-center justify-center gap-1.5">
-                          <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
-                          </span>
-                          Support S.O.L with Rp 15,000
-                        </p>
-                        <div className="text-[10px] text-stone-300 bg-[#0e0e0e] border border-stone-900 px-2.5 py-1.5 rounded select-all font-mono break-all font-bold">
-                          REF ID: {activeTrxId}
-                        </div>
-                        <p className="text-[8.5px] text-stone-400 max-w-[280px] mx-auto leading-relaxed">
-                          Scan the QRIS above with GoPay or any payment app. Submit your sender name below so we can verify. As a thank-you, all ads will be disabled forever once settled!
-                        </p>
-                      </div>
-
-                      {/* Sender Name Submission Form */}
-                      <div className="w-full text-left bg-black/40 border border-stone-850 p-3 rounded-md space-y-2.5 font-mono">
-                        <label className="text-[8.5px] uppercase tracking-wider text-stone-400 block font-bold">
-                          Sender Account Name:
-                        </label>
-                        {submitSuccess ? (
-                          <div className="text-[9.5px] text-emerald-400 bg-emerald-950/20 border border-emerald-900/30 py-1.5 px-2.5 rounded-sm flex items-center gap-1.5">
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            Submitted successfully! Verification pending...
-                          </div>
-                        ) : (
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              placeholder="e.g. GoPay Name"
-                              value={senderNameInput}
-                              onChange={(e) => setSenderNameInput(e.target.value)}
-                              className="flex-1 bg-[#121212] border border-stone-800 text-xs font-mono py-1.5 px-2.5 text-white focus:outline-none focus:border-stone-600 rounded-sm animate-in fade-in"
-                            />
-                            <button
-                              type="button"
-                              onClick={submitSenderName}
-                              disabled={!senderNameInput.trim()}
-                              className="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-450 disabled:bg-stone-800 disabled:text-stone-500 text-black text-[9px] font-bold uppercase tracking-wider transition-colors rounded-sm cursor-pointer border-0 font-bold"
-                            >
-                              Submit
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Developer Sandbox simulation trigger button */}
-                      <div className="pt-2 w-full border-t border-stone-900 flex justify-center">
-                        <button
-                          onClick={simulatePaymentSuccess}
-                          className="text-[8px] text-stone-600 hover:text-rose-500 transition-colors uppercase tracking-widest underline border-0 bg-transparent cursor-pointer"
-                        >
-                          Simulate Payment (Dev Sandbox)
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="py-6 flex flex-col items-center gap-3">
-                      <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
-                      <p className="text-[10px] text-stone-400 uppercase tracking-widest leading-relaxed">
-                        Initializing transaction...
+                    {/* Instructions */}
+                    <div className="space-y-2 w-full text-center">
+                      <p className="text-[10px] text-stone-300 uppercase tracking-widest font-bold">
+                        Scan to Support S.O.L
+                      </p>
+                      <p className="text-[8.5px] text-stone-400 max-w-[280px] mx-auto leading-relaxed">
+                        Scan the QRIS above with GoPay or any payment app. Your voluntary support keeps S.O.L online and free for everyone!
                       </p>
                     </div>
-                  )}
+                  </div>
                 </div>
 
-                {/* Restore section - only visible when payment is not settled */}
-                {trxStatus !== 'settled' && (
-                  <form onSubmit={handleRestorePurchase} className="border-t border-stone-900 pt-5 space-y-3">
-                    <label className="text-[10px] uppercase tracking-wider text-stone-400 block text-left">
-                      Restore Support/Ad-Free Pass
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Enter Transaction ID"
-                        value={restoreCode}
-                        onChange={(e) => setRestoreCode(e.target.value)}
-                        className="flex-1 bg-[#171717] border border-stone-850 text-xs font-mono py-2 px-3 text-white focus:outline-none focus:border-stone-600 rounded-sm"
-                      />
-                      <button
-                        type="submit"
-                        className="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-white text-[10px] font-bold uppercase tracking-wider transition-colors rounded-sm cursor-pointer border-0"
-                      >
-                        Restore
-                      </button>
-                    </div>
-                    {restoreError && (
-                      <p className="text-[9px] text-red-500 text-left font-mono">{restoreError}</p>
-                    )}
-                    {restoreSuccess && (
-                      <p className="text-[9px] text-emerald-400 text-left font-mono">Ad-free pass restored successfully!</p>
-                    )}
-                  </form>
-                )}
-
-                <div className="text-[9px] text-stone-600 pt-2 font-mono">
-                  {trxStatus === 'settled' ? 'Completing activation...' : 'Tap outside or ✕ to cancel'}
+                {/* Direct Unlocked Switch (Self-verify) */}
+                <div className="space-y-3 pt-2 border-t border-stone-900">
+                  <button
+                    onClick={() => {
+                      playDing();
+                      setIsPremium(true);
+                      localStorage.setItem('sol_premium', 'true');
+                      setShowPremiumModal(false);
+                    }}
+                    className="w-full py-2.5 bg-gradient-to-r from-rose-500/20 to-rose-700/20 border border-rose-500/30 hover:border-rose-500/60 text-rose-455 hover:text-rose-400 text-[10px] font-bold uppercase tracking-wider transition-colors rounded-sm cursor-pointer"
+                  >
+                    I have Supported (Disable Ads)
+                  </button>
+                  <button
+                    onClick={() => setShowPremiumModal(false)}
+                    className="w-full py-2 bg-stone-900 border border-stone-850 hover:border-stone-800 text-stone-400 hover:text-stone-300 text-[9px] font-bold uppercase tracking-wider transition-colors rounded-sm cursor-pointer"
+                  >
+                    Close
+                  </button>
                 </div>
               </motion.div>
             </div>
