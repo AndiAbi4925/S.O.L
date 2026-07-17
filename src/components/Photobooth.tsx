@@ -478,7 +478,7 @@ export default function Photobooth() {
             if (blob.size > 850 * 1024) {
               const frames: HTMLCanvasElement[] = [];
               const activeLayout = LAYOUTS[activeLayoutId] || LAYOUTS['1x4'];
-              
+
               // Generate the frames again, but with a lighter scale (e.g., 0.32)
               const uploadScale = 0.32;
               for (let i = 0; i < 5; i++) {
@@ -492,7 +492,7 @@ export default function Photobooth() {
                   activeFilterId,
                   lensEffect
                 );
-                
+
                 const c = document.createElement('canvas');
                 c.width = f.width * uploadScale;
                 c.height = f.height * uploadScale;
@@ -502,7 +502,7 @@ export default function Photobooth() {
                 }
                 frames.push(c);
               }
-              
+
               uploadBlob = await createGifExporter(frames, frames[0].width, frames[0].height, 8);
             }
           }
@@ -1492,7 +1492,7 @@ export default function Photobooth() {
                     }}
                     className="w-full py-2.5 bg-gradient-to-r from-rose-500/20 to-rose-700/20 border border-rose-500/30 hover:border-rose-500/60 text-rose-455 hover:text-rose-400 text-[10px] font-bold uppercase tracking-wider transition-colors rounded-sm cursor-pointer"
                   >
-                    I have Supported (Disable Ads)
+                    I have Supported
                   </button>
                   <button
                     onClick={() => setShowPremiumModal(false)}
