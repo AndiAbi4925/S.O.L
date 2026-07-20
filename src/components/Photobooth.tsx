@@ -857,7 +857,16 @@ export default function Photobooth() {
             <section id="about" className="w-full border-x border-b border-stone-900 py-16 md:py-24 px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-8 bg-[#09090b]/10 scroll-mt-20">
               <div className="space-y-4">
                 <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#8e1616] font-bold block">ABOUT THE DARKROOM</span>
-                <h3 className="text-xl font-serif text-white font-normal italic leading-tight">Tangible artifacts of affection in a code-driven screen.</h3>
+                <h3 className="text-xl font-serif text-white font-normal italic leading-tight pb-2">Tangible artifacts of affection in a code-driven screen.</h3>
+                <a
+                  href="https://www.instagram.com/snapoflove.id/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-[9px] font-mono uppercase tracking-[0.2em] text-stone-300 hover:text-white transition-colors border border-stone-850 hover:border-[#8e1616]/40 px-3.5 py-2 bg-[#0c0c0f]/80 cursor-pointer"
+                >
+                  <Instagram className="w-3.5 h-3.5 text-stone-400 group-hover:text-white" />
+                  @snapoflove.id
+                </a>
               </div>
               <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 text-stone-400 text-xs leading-relaxed font-normal">
                 <p>
