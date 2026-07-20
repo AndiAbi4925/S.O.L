@@ -46,25 +46,21 @@ export default function Lobby({
     >
       {/* Top Grid Menu Bar */}
       <div className={cn(
-        "w-full grid grid-cols-2 md:grid-cols-6 border bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40 transition-all duration-300",
+        "w-full grid grid-cols-2 md:grid-cols-5 border bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40 transition-all duration-300",
         isScrolled 
           ? "border-[#8e1616]/30 bg-[#09090b]/95 shadow-[0_10px_30px_rgba(0,0,0,0.85)]" 
           : "border-stone-900 bg-[#09090b]/20"
       )}>
-        {/* Logo Column */}
-        <div className="px-6 py-3.5 border-r border-stone-900 flex items-center justify-center">
-          <img src="/logo.png" alt="S.O.L Logo" className="h-7 w-auto object-contain" />
-        </div>
+        {/* Interactive Logo Home Column */}
         <button
           ref={homeBtnRef}
           onClick={() => {
             playTick();
             scrollToTop();
           }}
-          className="px-6 py-4 border-r border-stone-900 flex items-center gap-2 bg-transparent text-stone-400 hover:text-white transition-colors text-left border-0 cursor-pointer"
+          className="px-6 py-3.5 border-r border-stone-900 flex items-center justify-center bg-transparent border-y-0 border-l-0 cursor-pointer hover:bg-white/5 transition-colors"
         >
-          <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-          <span className="text-[10px] uppercase font-mono tracking-widest text-white font-bold">HOME</span>
+          <img src="/logo.png" alt="S.O.L Logo" className="h-7 w-auto object-contain" />
         </button>
         <button
           ref={specimensBtnRef}
@@ -103,7 +99,7 @@ export default function Lobby({
             playTick();
             startNewSession();
           }}
-          className="px-6 py-4 bg-white text-black hover:bg-stone-150 transition-colors text-[10px] uppercase font-mono tracking-[0.25em] font-bold text-center flex items-center justify-center gap-2 cursor-pointer"
+          className="px-6 py-4 bg-white text-black hover:bg-stone-150 transition-colors text-[10px] uppercase font-mono tracking-[0.25em] font-bold text-center flex items-center justify-center gap-2 cursor-pointer col-span-2 md:col-span-1"
         >
           <Camera className="w-3.5 h-3.5" />
           Enter Studio
