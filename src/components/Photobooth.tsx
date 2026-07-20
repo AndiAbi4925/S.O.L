@@ -720,7 +720,7 @@ export default function Photobooth() {
             <div className="w-full grid grid-cols-2 md:grid-cols-6 border border-stone-900 bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40">
               {/* Logo Column */}
               <div className="px-6 py-3.5 border-r border-stone-900 flex items-center justify-center">
-                <img src="/logo.png" alt="S.O.L Logo" className="h-6 w-auto object-contain invert brightness-200" />
+                <img src="/logo.png" alt="S.O.L Logo" className="h-7 w-auto object-contain" />
               </div>
               <button
                 ref={homeBtnRef}
@@ -807,7 +807,46 @@ export default function Photobooth() {
               className="w-full py-20 md:py-28 border-x border-b border-stone-900 bg-[#08080a]/20 px-6 md:px-12 flex justify-center"
             >
               <h2 className="text-3xl md:text-5xl font-serif text-stone-200 tracking-tight leading-tight max-w-5xl text-center font-normal">
-                S.O.L archives the <span className="italic text-white underline decoration-[#8e1616]/40 decoration-1 underline-offset-8">quiet intimacy of the everyday</span> — translating brief frames of warmth, light, and affection into visual keepsakes.
+                S.O.L archives the{" "}
+                <span className="relative inline-block italic text-white pb-1.5 px-0.5">
+                  {"quiet intimacy of the everyday".split("").map((char, index) => (
+                    <motion.span
+                      key={index}
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      viewport={{ once: true }}
+                      transition={{
+                        delay: 0.3 + index * 0.03,
+                        duration: 0.01
+                      }}
+                    >
+                      {char}
+                    </motion.span>
+                  ))}
+                  {/* Imperfect Hand-drawn Marker Underline */}
+                  <svg
+                    className="absolute -bottom-1.5 left-0 w-full h-3 overflow-visible pointer-events-none"
+                    viewBox="0 0 100 10"
+                    preserveAspectRatio="none"
+                  >
+                    <motion.path
+                      d="M 1,4 Q 25,1 50,6 T 99,3"
+                      fill="none"
+                      stroke="#8e1616"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      initial={{ pathLength: 0 }}
+                      whileInView={{ pathLength: 1 }}
+                      viewport={{ once: true }}
+                      transition={{
+                        delay: 1.35,
+                        duration: 0.7,
+                        ease: "easeInOut"
+                      }}
+                    />
+                  </svg>
+                </span>{" "}
+                — translating brief frames of warmth, light, and affection into visual keepsakes.
               </h2>
             </motion.div>
 
