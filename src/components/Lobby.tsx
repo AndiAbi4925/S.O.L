@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Camera, Instagram } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import gsap from 'gsap';
 import { playTick } from '../lib/audioUtils';
 import { useMagnetic } from '../hooks/useMagnetic';
 import { cn } from '../lib/utils';
@@ -33,6 +34,28 @@ export default function Lobby({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     setMousePosition({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleCharHover = (e: React.MouseEvent<HTMLSpanElement>) => {
+    const target = e.currentTarget;
+    gsap.killTweensOf(target);
+    
+    gsap.to(target, {
+      y: -20,
+      scale: 1.08,
+      rotate: -5,
+      duration: 0.15,
+      ease: 'power1.out',
+      onComplete: () => {
+        gsap.to(target, {
+          y: 0,
+          scale: 1,
+          rotate: 0,
+          duration: 1.0,
+          ease: 'elastic.out(1.15, 0.4)',
+        });
+      }
+    });
   };
 
   return (
@@ -115,10 +138,16 @@ export default function Lobby({
           [ SCAN_HERO: PASS_OK ]
         </div>
 
-        <div className="glitch-wrapper my-4">
-          <h1 className="text-[12vw] md:text-[8rem] font-serif italic tracking-tighter text-white leading-none glitch-logo select-none" data-text="S.O.L">
-            S.O.L
-          </h1>
+        <div className="flex gap-2 my-4 select-none">
+          {["S", ".", "O", ".", "L"].map((char, index) => (
+            <span
+              key={index}
+              onMouseEnter={handleCharHover}
+              className="text-[12vw] md:text-[8rem] font-serif italic tracking-tighter text-white leading-none inline-block origin-bottom transition-colors duration-200 hover:text-[#8e1616]"
+            >
+              {char}
+            </span>
+          ))}
         </div>
 
         <p className="text-[10px] uppercase font-mono tracking-[0.3em] text-[#8e1616] mt-4 font-bold flex items-center gap-2 select-none">
