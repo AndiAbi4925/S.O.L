@@ -47,66 +47,70 @@ html, body {
 }
 
 /* ==========================================================================
-   STUDIO EDITORIAL THEME OVERRIDES (Inspired by signal-a.studio)
+   ANALOG LOGO GLITCH EFFECT
    ========================================================================== */
 
-.theme-editorial {
-  background-color: #09090b !important;
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px) !important;
-  background-size: 32px 32px !important;
-  background-position: center center !important;
+.glitch-wrapper {
+  position: relative;
+  display: inline-block;
 }
 
-/* Hide glowing ambient overlays */
-.theme-editorial [class*="animate-ambient-"] {
-  display: none !important;
-  opacity: 0 !important;
+.glitch-logo {
+  position: relative;
+  color: #fff;
 }
 
-/* Force sharp geometric corners */
-.theme-editorial *,
-.theme-editorial *::before,
-.theme-editorial *::after {
-  border-radius: 0px !important;
+.glitch-logo::before,
+.glitch-logo::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
 }
 
-/* Make grid lines cleaner and more precise */
-.theme-editorial .border,
-.theme-editorial [class*="border-"] {
-  border-color: #1f1f2e !important;
+.glitch-logo::before {
+  left: 2.5px;
+  text-shadow: -1px 0 rgba(142, 22, 22, 0.7);
+  clip: rect(44px, 450px, 56px, 0);
+  animation: glitch-anim 5s infinite linear alternate-reverse;
 }
 
-/* Technical blueprint container aesthetics */
-.theme-editorial [key="landing"],
-.theme-editorial [key="workspace-active"],
-.theme-editorial [key="workspace-review"] {
-  background-color: #060608 !important;
-  border: 1px solid #27273a !important;
-  box-shadow: 0 40px 100px -30px rgba(0, 0, 0, 0.95) !important;
+.glitch-logo::after {
+  left: -2.5px;
+  text-shadow: -1.5px 0 rgba(223, 204, 213, 0.7), 0 1px rgba(142, 22, 22, 0.6);
+  clip: rect(85px, 450px, 140px, 0);
+  animation: glitch-anim2 5s infinite linear alternate-reverse;
 }
 
-/* Sidebar and panel separations */
-.theme-editorial aside {
-  background-color: #09090c !important;
-  border-color: #27273a !important;
+@keyframes glitch-anim {
+  0% { clip: rect(15px, 9999px, 66px, 0); transform: skew(0.1deg); }
+  5% { clip: rect(30px, 9999px, 5px, 0); transform: skew(0.3deg); }
+  10% { clip: rect(76px, 9999px, 116px, 0); transform: skew(-0.2deg); }
+  15% { clip: rect(125px, 9999px, 20px, 0); transform: skew(0.1deg); }
+  20% { clip: rect(5px, 9999px, 145px, 0); transform: skew(-0.5deg); }
+  25% { clip: rect(88px, 9999px, 50px, 0); transform: skew(0.2deg); }
+  30% { clip: rect(100px, 9999px, 120px, 0); transform: skew(0.1deg); }
+  35% { clip: rect(15px, 9999px, 80px, 0); transform: skew(-0.2deg); }
+  40% { clip: rect(60px, 9999px, 5px, 0); transform: skew(0.4deg); }
+  45% { clip: rect(135px, 9999px, 45px, 0); transform: skew(-0.1deg); }
+  50% { clip: rect(95px, 9999px, 130px, 0); transform: skew(0.1deg); }
+  55% { clip: rect(10px, 9999px, 55px, 0); transform: skew(0deg); }
+  100% { clip: rect(15px, 9999px, 66px, 0); transform: skew(0.1deg); }
 }
 
-/* Scrollbar customization for technical look */
-.theme-editorial ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-
-.theme-editorial ::-webkit-scrollbar-track {
-  background: #060608;
-}
-
-.theme-editorial ::-webkit-scrollbar-thumb {
-  background: #27273a;
-}
-
-.theme-editorial ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f5a;
+@keyframes glitch-anim2 {
+  0% { clip: rect(70px, 9999px, 105px, 0); transform: skew(-0.1deg); }
+  10% { clip: rect(5px, 9999px, 85px, 0); transform: skew(0.2deg); }
+  20% { clip: rect(120px, 9999px, 15px, 0); transform: skew(-0.3deg); }
+  30% { clip: rect(40px, 9999px, 110px, 0); transform: skew(0.1deg); }
+  4% { clip: rect(90px, 9999px, 55px, 0); transform: skew(-0.2deg); }
+  50% { clip: rect(15px, 9999px, 135px, 0); transform: skew(0.3deg); }
+  60% { clip: rect(80px, 9999px, 30px, 0); transform: skew(-0.1deg); }
+  70% { clip: rect(110px, 9999px, 95px, 0); transform: skew(0.2deg); }
+  80% { clip: rect(25px, 9999px, 65px, 0); transform: skew(-0.4deg); }
+  90% { clip: rect(135px, 9999px, 120px, 0); transform: skew(0.1deg); }
+  100% { clip: rect(70px, 9999px, 105px, 0); transform: skew(-0.1deg); }
 }

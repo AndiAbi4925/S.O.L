@@ -149,14 +149,13 @@ export default function Photobooth() {
   const [showAdOverlay, setShowAdOverlay] = useState<boolean>(false);
   const [pendingExportFormat, setPendingExportFormat] = useState<'jpg' | 'png' | 'gif' | null>(null);
 
-  // Aesthetic Theme state ('classic' | 'editorial')
-  const [aestheticTheme, setAestheticTheme] = useState<'classic' | 'editorial'>(
-    () => (localStorage.getItem('sol_aesthetic_theme') as 'classic' | 'editorial') || 'classic'
-  );
+  // Mouse position state for Specimen hover trails
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [hoveredSpecimenIndex, setHoveredSpecimenIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-    localStorage.setItem('sol_aesthetic_theme', aestheticTheme);
-  }, [aestheticTheme]);
+  const handleLobbyMouseMove = (e: React.MouseEvent) => {
+    setMousePosition({ x: e.clientX, y: e.clientY });
+  };
 
   const isLocked = (layoutId: string) => {
     return false;
@@ -605,245 +604,266 @@ export default function Photobooth() {
   };
 
   return (
-    <div className={cn(
-      "h-[100dvh] w-screen overflow-y-auto md:overflow-hidden overflow-x-hidden bg-[#080808] text-[#e0e0e0] font-sans flex flex-col items-center justify-center select-none relative md:p-4",
-      aestheticTheme === 'editorial' && "theme-editorial"
-    )}>
+    <div
+      onMouseMove={screen === 'landing' ? handleLobbyMouseMove : undefined}
+      className={cn(
+        "w-screen bg-[#080808] text-[#e0e0e0] font-sans select-none relative transition-colors duration-500",
+        screen === 'landing'
+          ? "min-h-screen overflow-y-auto overflow-x-hidden flex flex-col bg-[#09090b] bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px]"
+          : "h-[100dvh] overflow-y-auto md:overflow-hidden overflow-x-hidden flex flex-col items-center justify-center md:p-4"
+      )}
+    >
 
-      {/* Background Ambience Light Glows (Corner Edges) */}
-      <div className="absolute -top-[200px] -left-[200px] w-[500px] h-[500px] bg-[#8e1616] rounded-full blur-[140px] pointer-events-none z-0 animate-ambient-1" />
-      <div className="absolute -bottom-[200px] -right-[200px] w-[500px] h-[500px] bg-[#8e1616] rounded-full blur-[140px] pointer-events-none z-0 animate-ambient-2" />
-      <div className="absolute -top-[150px] -right-[150px] w-[400px] h-[400px] bg-[#dfccd5] rounded-full blur-[120px] pointer-events-none z-0 animate-ambient-3" />
-      <div className="absolute -bottom-[150px] -left-[150px] w-[400px] h-[400px] bg-[#dfccd5] rounded-full blur-[120px] pointer-events-none z-0 animate-ambient-4" />
-
-      {/* Aesthetic Theme Switcher */}
-      <div className="absolute top-4 right-4 flex items-center gap-1 bg-[#121212] border border-stone-850 p-1 text-[9px] uppercase tracking-wider font-mono z-50 rounded-sm shadow-[0_10px_30px_-5px_rgba(0,0,0,0.8)] select-none">
-        <span className="text-stone-500 px-2 py-0.5 select-none font-bold">STYLE:</span>
-        <button
-          onClick={() => {
-            playTick();
-            setAestheticTheme('classic');
-          }}
-          className={cn(
-            "px-2 py-0.5 transition-colors cursor-pointer rounded-xs",
-            aestheticTheme === 'classic'
-              ? "bg-white text-black font-bold"
-              : "text-stone-400 hover:text-white"
-          )}
-        >
-          Classic
-        </button>
-        <button
-          onClick={() => {
-            playTick();
-            setAestheticTheme('editorial');
-          }}
-          className={cn(
-            "px-2 py-0.5 transition-colors cursor-pointer rounded-xs",
-            aestheticTheme === 'editorial'
-              ? "bg-stone-800 text-white font-bold"
-              : "text-stone-400 hover:text-white"
-          )}
-        >
-          Editorial
-        </button>
-      </div>
+      {/* Background Ambience Light Glows (Corner Edges) - Only rendered in studio screen views */}
+      {screen !== 'landing' && (
+        <>
+          <div className="absolute -top-[200px] -left-[200px] w-[500px] h-[500px] bg-[#8e1616] rounded-full blur-[140px] pointer-events-none z-0 animate-ambient-1" />
+          <div className="absolute -bottom-[200px] -right-[200px] w-[500px] h-[500px] bg-[#8e1616] rounded-full blur-[140px] pointer-events-none z-0 animate-ambient-2" />
+          <div className="absolute -top-[150px] -right-[150px] w-[400px] h-[400px] bg-[#dfccd5] rounded-full blur-[120px] pointer-events-none z-0 animate-ambient-3" />
+          <div className="absolute -bottom-[150px] -left-[150px] w-[400px] h-[400px] bg-[#dfccd5] rounded-full blur-[120px] pointer-events-none z-0 animate-ambient-4" />
+        </>
+      )}
 
       <AnimatePresence mode="wait">
 
-        {/* SCREEN 1: LANDING / OPENING PAGE */}
+        {/* SCREEN 1: LANDING / OPENING PAGE (Signal-A Inspired) */}
         {screen === 'landing' && (
           <motion.div
             key="landing"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.7, ease: 'easeOut' }}
-            className="w-full max-w-4xl min-h-[85vh] bg-[#0f0f0f]/90 border border-[#222] backdrop-blur-2xl rounded-2xl p-8 md:p-14 flex flex-col md:flex-row gap-12 items-center justify-between shadow-3xl z-10 mx-4 relative overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-full flex flex-col relative z-10 px-4 md:px-8 py-8 max-w-7xl mx-auto"
           >
-            {aestheticTheme === 'editorial' && (
-              <>
-                <div className="absolute top-3 left-3 text-[7.5px] font-mono text-stone-600 tracking-widest font-bold">
-                  [ CROP_MARGIN: 40px // SIZE: 600x1800 ]
-                </div>
-                <div className="absolute bottom-3 right-3 text-[7.5px] font-mono text-stone-600 tracking-widest font-bold">
-                  S.O.L BOOTH TAPE COMPOSITOR SYSTEM v2.1
-                </div>
-              </>
-            )}
-            {/* Branding Text column */}
-            <div className="flex-1 flex flex-col justify-center text-left space-y-8">
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-full">
-                  <Heart className="w-3.5 h-3.5 animate-pulse" style={{ color: '#8e1616', fill: 'rgba(142, 22, 22, 0.3)' }} />
-                  <span className="text-[10px] uppercase font-mono tracking-[0.25em] text-[#bbb]">Snap of Love</span>
-                </div>
-                <h1 className="text-6xl md:text-7xl font-serif font-normal italic tracking-tight text-white leading-none">
+            {/* Top Grid Menu Bar */}
+            <div className="w-full grid grid-cols-2 md:grid-cols-6 border border-stone-900 bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40">
+              <div className="px-6 py-4 border-r border-stone-900 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+                <span className="text-[10px] uppercase font-mono tracking-widest text-white font-bold">HOME</span>
+              </div>
+              <a href="#specimens" className="px-6 py-4 border-r border-stone-900 text-stone-400 hover:text-white transition-colors text-[10px] uppercase font-mono tracking-widest font-bold flex items-center">
+                Specimens
+              </a>
+              <a href="#capabilities" className="px-6 py-4 border-r border-stone-900 text-stone-400 hover:text-white transition-colors text-[10px] uppercase font-mono tracking-widest font-bold flex items-center">
+                Capabilities
+              </a>
+              <a href="#about" className="px-6 py-4 border-r border-stone-900 text-stone-400 hover:text-white transition-colors text-[10px] uppercase font-mono tracking-widest font-bold flex items-center">
+                About
+              </a>
+              
+              {/* Integrated BGM Spindle Deck in Header */}
+              <div className="px-6 py-2 border-r border-stone-900 flex items-center justify-between gap-4 font-mono text-[9px] order-last md:order-none col-span-2 md:col-span-1 border-t md:border-t-0 border-stone-900">
+                <span className="text-stone-500 font-bold tracking-wider">AMB_TAPE:</span>
+                <button
+                  onClick={() => {
+                    playTick();
+                    toggleBgm();
+                  }}
+                  className={cn(
+                    "px-2.5 py-1 border rounded-xs font-bold transition-all cursor-pointer",
+                    isBgmPlaying 
+                      ? "bg-red-950/20 text-red-500 border-red-500/30 animate-pulse" 
+                      : "bg-transparent text-stone-500 border-stone-850 hover:text-stone-300 hover:border-stone-750"
+                  )}
+                >
+                  {isBgmPlaying ? "ON" : "MUTED"}
+                </button>
+              </div>
+
+              <button
+                onClick={() => {
+                  playTick();
+                  startNewSession();
+                }}
+                className="px-6 py-4 bg-white text-black hover:bg-stone-150 transition-colors text-[10px] uppercase font-mono tracking-[0.25em] font-bold text-center flex items-center justify-center gap-2 cursor-pointer col-span-2 md:col-span-1"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                Enter Studio
+              </button>
+            </div>
+
+            {/* CRT glitch LOGO Hero */}
+            <div className="w-full flex flex-col items-center justify-center py-20 border-x border-b border-stone-900 bg-[#09090c]/40 relative">
+              <div className="absolute top-4 left-6 text-[8px] font-mono text-stone-600 tracking-widest font-bold">
+                [ ENGINE_CODE: SOL_V2 // CLIENT_RENDER ]
+              </div>
+              <div className="absolute top-4 right-6 text-[8px] font-mono text-stone-600 tracking-widest font-bold">
+                [ SCAN_HERO: PASS_OK ]
+              </div>
+
+              <div className="glitch-wrapper my-4">
+                <h1 className="text-[12vw] md:text-[8rem] font-serif italic tracking-tighter text-white leading-none glitch-logo select-none" data-text="S.O.L">
                   S.O.L
                 </h1>
-                <p className="text-stone-400 text-lg md:text-xl font-normal leading-relaxed max-w-md">
-                  S.O.L (Snap of Love) is an analog-digital photobooth crafted for archiving snapshots of memories, affection, and everyday poetry.
+              </div>
+
+              <p className="text-[10px] uppercase font-mono tracking-[0.3em] text-[#8e1616] mt-4 font-bold flex items-center gap-2 select-none">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+                Snap of Love — Analog-Digital Studio
+              </p>
+            </div>
+
+            {/* Large Statement Grid Block */}
+            <div className="w-full py-20 md:py-28 border-x border-b border-stone-900 bg-[#08080a]/20 px-6 md:px-12 flex justify-center">
+              <h2 className="text-3xl md:text-5xl font-serif text-stone-200 tracking-tight leading-tight max-w-5xl text-center font-normal">
+                S.O.L builds <span className="italic text-white underline decoration-[#8e1616]/40 decoration-1 underline-offset-8">meticulously crafted photography spaces</span> that capture the transient warmth of everyday life, helping <span className="text-[#8e1616] font-medium">intimate poetry and memories</span> thrive.
+              </h2>
+            </div>
+
+            {/* SPECIMENS: Case studies list with Mouse Reveal Previews */}
+            <section id="specimens" className="w-full border-x border-stone-900 scroll-mt-20">
+              <div className="w-full grid grid-cols-2 md:grid-cols-4 border-b border-stone-900 bg-[#0c0c0e]/30 px-6 py-4">
+                <span className="text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold">SPECIMEN PREVIEW</span>
+                <span className="hidden md:inline text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold">FILE_ID</span>
+                <span className="hidden md:inline text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold text-center">THEME_MATERIAL</span>
+                <span className="text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold text-right">LAYOUT_RATIO</span>
+              </div>
+
+              {/* Showcase items */}
+              {[
+                { name: "Friends Gathering Studio", code: "A — 01", theme: "Warm Alabaster", ratio: "Classic 1x4 Strip" },
+                { name: "Late Night Couple Archive", code: "A — 02", theme: "Ink Obsidian", ratio: "Cinematic Duo" },
+                { name: "Friends Classic Quad", code: "A — 03", theme: "Cherry Blossom", ratio: "Quad Grid 2x2" },
+                { name: "Group Filmstrip Composite", code: "A — 04", theme: "Cyber Silver", ratio: "Classic 1x4 Strip" },
+                { name: "Vintage Polaroid Snapshot", code: "A — 05", theme: "Vintage Parchment", ratio: "Polaroid 1x1" },
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  onMouseEnter={() => setHoveredSpecimenIndex(index)}
+                  onMouseLeave={() => setHoveredSpecimenIndex(null)}
+                  className="w-full grid grid-cols-2 md:grid-cols-4 border-b border-stone-900 px-6 py-8 hover:bg-stone-900/10 transition-colors duration-250 cursor-crosshair group"
+                >
+                  <span className="text-stone-300 group-hover:text-white transition-colors text-sm font-serif font-medium italic">
+                    {item.name}
+                  </span>
+                  <span className="hidden md:inline text-[11px] font-mono text-stone-500 uppercase tracking-wider font-bold">
+                    {item.code}
+                  </span>
+                  <span className="hidden md:inline text-[11px] font-mono text-stone-400 uppercase tracking-wider font-bold text-center">
+                    {item.theme}
+                  </span>
+                  <span className="text-[11px] font-mono text-stone-500 uppercase tracking-wider font-bold text-right">
+                    {item.ratio}
+                  </span>
+                </div>
+              ))}
+            </section>
+
+            {/* SPECIMENS HOVER FLOATING COMPONENT */}
+            <AnimatePresence>
+              {hoveredSpecimenIndex !== null && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    x: mousePosition.x + 24,
+                    y: mousePosition.y - 120,
+                  }}
+                  exit={{ opacity: 0, scale: 0.92 }}
+                  transition={{ type: 'spring', stiffness: 240, damping: 24 }}
+                  style={{
+                    position: 'fixed',
+                    left: 0,
+                    top: 0,
+                    pointerEvents: 'none',
+                    zIndex: 999,
+                  }}
+                  className="w-44 shadow-[0_20px_50px_rgba(0,0,0,0.9)] border border-stone-850 p-2 bg-[#0c0c0f] flex flex-col gap-2 rounded-none"
+                >
+                  <img
+                    src={`/specimen${hoveredSpecimenIndex + 1}.png`}
+                    alt="Specimen Preview"
+                    className="w-full h-auto object-contain border border-stone-900"
+                  />
+                  <div className="flex justify-between items-center text-[7px] font-mono text-stone-500 uppercase tracking-widest mt-0.5">
+                    <span>SPECIMEN_0{hoveredSpecimenIndex + 1}</span>
+                    <span className="text-[#8e1616] font-bold">ACTIVE VIEW</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* CAPABILITIES: Accordions / Accolades Table Grid */}
+            <section id="capabilities" className="w-full border-x border-stone-900 scroll-mt-20">
+              <div className="w-full border-b border-stone-900 bg-[#0c0c0e]/30 px-6 py-4">
+                <span className="text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold">STUDIO ARCHIVE SPECIFICATION</span>
+              </div>
+              {[
+                { label: "High-Fidelity Presets", spec: "6 Custom Emulations (Cherry, sepia, obsidian, etc.)" },
+                { label: "Burst Exporter Frame Rate", spec: "GIF burst motion engine at 8 FPS compile" },
+                { label: "Cloud Save Synchronization", spec: "Compressed JPG payload downscales for 1MB limits" },
+                { label: "Local Lossless Encoding", spec: "True RGB client-side downloads without watermarks" },
+                { label: "Voluntary Creator Support", spec: "High-trust checkout bypass with ad overlay skip" },
+              ].map((cap, index) => (
+                <div key={index} className="w-full flex justify-between items-center border-b border-stone-900 px-6 py-5">
+                  <span className="text-xs uppercase font-mono tracking-widest text-stone-400 font-bold">{cap.label}</span>
+                  <span className="text-xs font-sans text-stone-300 font-medium text-right">{cap.spec}</span>
+                </div>
+              ))}
+            </section>
+
+            {/* ABOUT: Column split text */}
+            <section id="about" className="w-full border-x border-b border-stone-900 py-16 md:py-24 px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-8 bg-[#09090b]/10 scroll-mt-20">
+              <div className="space-y-4">
+                <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#8e1616] font-bold block">ABOUT THE DARKROOM</span>
+                <h3 className="text-xl font-serif text-white font-normal italic leading-tight">Tangible artifacts of affection in a code-driven screen.</h3>
+              </div>
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 text-stone-400 text-xs leading-relaxed font-normal">
+                <p>
+                  S.O.L (Snap of Love) is an experimental digital photobooth designed to anchor fleeting snapshots of memory, intimacy, and local poetry. We hold the premise that photos are not mere digital data, but visual coordinates representing genuine affection.
+                </p>
+                <p>
+                  By merging nostalgic analog paper textures, adjustable film grain, and clean modern styling grid structures, S.O.L creates a visual bridge to render snapshots that belong in a museum or a memory box. Entry is entirely client-side; your privacy remains yours.
                 </p>
               </div>
+            </section>
 
-              {/* High precision info blocks */}
-              <div className="grid grid-cols-2 gap-4 border-t border-[#222] pt-6 max-w-sm">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-mono uppercase tracking-widest text-stone-500">Formats</p>
-                  <p className="text-xs text-stone-300 font-medium">PNG, JPG, Animated GIF</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-mono uppercase tracking-widest text-stone-500">Presets</p>
-                  <p className="text-xs text-stone-300 font-medium">Retro Film & Custom Stamp</p>
-                </div>
-              </div>
-
-              {/* Start CTA & BGM Player */}
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-wrap gap-4">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={startNewSession}
-                    className="px-8 py-5 bg-white text-black hover:bg-stone-100 rounded-none text-xs font-bold uppercase tracking-[0.3em] shadow-xl flex items-center justify-center gap-3 group transition-colors cursor-pointer animate-in fade-in duration-500"
-                  >
-                    <Camera className="w-4 h-4 transition-transform group-hover:rotate-12" />
-                    Enter Studio
-                  </motion.button>
-
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      setShowPremiumModal(true);
-                    }}
-                    className="px-6 py-5 border border-rose-500/40 text-rose-500 hover:border-rose-400 hover:bg-rose-500/5 rounded-none text-xs font-bold uppercase tracking-[0.3em] shadow-xl flex items-center justify-center gap-2 group transition-colors cursor-pointer animate-in fade-in duration-500"
-                  >
-                    <Heart className="w-4 h-4 text-rose-500 animate-pulse" />
-                    Support Creator
-                  </motion.button>
-                </div>
-
-                {/* Cassette BGM Deck */}
-                <div className="pt-6 border-t border-[#222]/80 max-w-xs">
-                  <div className="bg-[#111] border border-[#222] rounded-lg p-3.5 flex items-center justify-between gap-4 shadow-2xl relative overflow-hidden select-none">
-                    {/* Retro tape stripes */}
-                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-amber-500 to-indigo-500 opacity-20" />
-
-                    {/* Cassette layout reels */}
-                    <div className="flex items-center gap-3.5">
-                      <div className="flex items-center justify-center relative w-11 h-7 bg-stone-900 border border-stone-800 rounded-xs overflow-hidden">
-                        {/* Spindle Reels */}
-                        <div className="flex gap-2">
-                          <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
-                            <div className="w-1 h-1 bg-stone-500 rounded-full" />
-                          </div>
-                          <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
-                            <div className="w-1 h-1 bg-stone-500 rounded-full" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col justify-center text-left">
-                        <p className="text-[9px] uppercase font-mono tracking-wider text-stone-500">Lo-Fi Ambient</p>
-                        <p className="text-[10px] uppercase font-bold tracking-widest text-[#eaeaea] font-mono">SOL TAPE 01</p>
-                      </div>
-                    </div>
-
-                    {/* Cassette deck control buttons */}
-                    <div className="flex items-center gap-2">
-                      {/* Active Led indicator */}
-                      <div className="flex items-center justify-center pr-1.5">
-                        <span className="relative flex h-2 w-2">
-                          <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-red-600", !isBgmPlaying && "hidden")} />
-                          <span className={cn("relative inline-flex rounded-full h-2 w-2", isBgmPlaying ? "bg-red-600" : "bg-stone-800")} />
-                        </span>
-                      </div>
-
-                      <button
-                        onClick={toggleBgm}
-                        className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center border transition-all cursor-pointer",
-                          isBgmPlaying
-                            ? "bg-white text-black border-white hover:bg-stone-200"
-                            : "bg-transparent text-stone-400 border-stone-800 hover:text-white hover:border-[#444] hover:bg-white/5"
-                        )}
-                      >
-                        {isBgmPlaying ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Simulated Animated Preview Column (Aesthetics Showcase) */}
-            <div className="w-full md:w-80 shrink-0 flex items-center justify-center" style={{ perspective: 1000 }}>
-              <motion.div
-                onMouseEnter={() => setIsCardHovered(true)}
-                onMouseMove={handleCardMouseMove}
-                onMouseLeave={handleCardMouseLeave}
-                animate={isCardHovered ? {
-                  rotateX: tilt.x,
-                  rotateY: tilt.y,
-                  scale: 1.04,
-                  rotateZ: 0,
-                  y: -10,
-                } : {
-                  rotateX: 0,
-                  rotateY: 0,
-                  scale: 1,
-                  rotateZ: aestheticTheme === 'editorial' ? 0 : 2, // base rotation
-                  y: [0, -6, 0], // constant floating loop
+            {/* CTA Studio trigger before loop */}
+            <div className="w-full flex justify-center py-16 border-x border-stone-900 bg-[#08080a]/20">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  playTick();
+                  startNewSession();
                 }}
-                transition={isCardHovered ? {
-                  type: 'spring',
-                  stiffness: 150,
-                  damping: 15
-                } : {
-                  y: {
-                    repeat: Infinity,
-                    duration: 5,
-                    ease: 'easeInOut'
-                  },
-                  duration: 0.5
-                }}
-                style={{ transformStyle: 'preserve-3d' }}
-                className={cn(
-                  "relative p-4 shadow-[0_24px_50px_-10px_rgba(0,0,0,0.8)] flex flex-col gap-3 justify-center items-center w-64 md:w-72 select-none cursor-pointer",
-                  aestheticTheme === 'editorial'
-                    ? "bg-[#0c0c0e] text-[#f4f4f5] border border-[#27273a]"
-                    : "bg-[#fbebe7] text-[#1a1a1a] border border-[#dfccd5]/50"
-                )}
+                className="px-12 py-6 bg-white text-black hover:bg-stone-150 rounded-none text-xs font-bold uppercase tracking-[0.4em] shadow-2xl flex items-center justify-center gap-3 transition-colors cursor-pointer"
               >
-                <div className="absolute top-2 right-2 text-stone-500 font-mono text-[9px] font-bold">PREVIEW SPECIMEN</div>
-
-                {/* Simulated photocard frames */}
-                <div className="w-full aspect-[4/3] bg-stone-900 border border-black/10 overflow-hidden relative flex items-center justify-center">
-                  <div className="absolute inset-0 bg-gradient-to-t from-red-900/40 to-transparent z-10" />
-                  <Heart className="w-8 h-8 text-white/30 animate-pulse relative z-10" />
-                  <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#111_1px,transparent_1px)] [background-size:8px_8px]" />
-                </div>
-
-                <div className="w-full aspect-[4/3] bg-stone-800 border border-black/10 overflow-hidden relative flex items-center justify-center">
-                  <p className="text-[11px] uppercase tracking-widest font-mono text-white/40">S.O.L STUDIO</p>
-                  <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:6px_6px]" />
-                </div>
-
-                {/* Stamp & Branding signoff */}
-                <div className={cn(
-                  "w-full flex items-center justify-between px-1 mt-1 text-[9px]",
-                  aestheticTheme === 'editorial' ? "text-stone-400" : "text-black"
-                )}>
-                  <span className="font-mono text-[#8e1616] font-bold tracking-tighter">'26.05.20</span>
-                  <span className={cn(
-                    "font-sans font-bold tracking-[0.15em] uppercase",
-                    aestheticTheme === 'editorial' ? "text-stone-400" : "text-stone-700"
-                  )}>SNAP OF LOVE</span>
-                </div>
-              </motion.div>
+                <Camera className="w-4 h-4" />
+                ENTER PHOTOSTUDIO
+              </motion.button>
             </div>
 
+            {/* Loop Marquee (At the very bottom of lobby) */}
+            <div className="w-full overflow-hidden border border-stone-900 py-8 bg-[#060608] select-none">
+              <div className="flex whitespace-nowrap">
+                <motion.div
+                  animate={{ x: [0, -1000] }}
+                  transition={{ ease: "linear", duration: 25, repeat: Infinity }}
+                  className="flex gap-16 text-5xl md:text-7xl font-serif italic text-white tracking-tighter uppercase font-bold pr-16"
+                >
+                  <span>S.O.L</span>
+                  <span className="font-sans font-normal not-italic text-stone-500">SNAP OF LOVE</span>
+                  <span>S.O.L</span>
+                  <span className="font-sans font-normal not-italic text-stone-500">SNAP OF LOVE</span>
+                  <span>S.O.L</span>
+                  <span className="font-sans font-normal not-italic text-stone-500">SNAP OF LOVE</span>
+                </motion.div>
+                <motion.div
+                  animate={{ x: [0, -1000] }}
+                  transition={{ ease: "linear", duration: 25, repeat: Infinity }}
+                  className="flex gap-16 text-5xl md:text-7xl font-serif italic text-white tracking-tighter uppercase font-bold pr-16"
+                >
+                  <span>S.O.L</span>
+                  <span className="font-sans font-normal not-italic text-stone-500">SNAP OF LOVE</span>
+                  <span>S.O.L</span>
+                  <span className="font-sans font-normal not-italic text-stone-500">SNAP OF LOVE</span>
+                  <span>S.O.L</span>
+                  <span className="font-sans font-normal not-italic text-stone-500">SNAP OF LOVE</span>
+                </motion.div>
+              </div>
+            </div>
           </motion.div>
         )}
 
@@ -1082,20 +1102,7 @@ export default function Photobooth() {
               <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.95)] z-20" />
 
               {/* Stream Video Wrapper with applied selected LIVE FILTER style */}
-              <div className={cn(
-                "relative w-full max-w-4xl aspect-[4/3] bg-[#111] overflow-hidden border border-[#222] shadow-3xl z-10 transition-all duration-300",
-                aestheticTheme === 'editorial' && "border-stone-850 p-4 md:p-6 bg-[#080808]"
-              )}>
-                {aestheticTheme === 'editorial' && (
-                  <>
-                    <div className="absolute top-1 left-3 text-[7.5px] font-mono text-stone-600 tracking-widest font-bold">
-                      [ HUD_VIEW: LIVE_FEED // APERTURE: F/2.8 ]
-                    </div>
-                    <div className="absolute top-1 right-3 text-[7.5px] font-mono text-stone-600 tracking-widest font-bold">
-                      SHUTTER: 1/125s // ISO: 400
-                    </div>
-                  </>
-                )}
+              <div className="relative w-full max-w-4xl aspect-[4/3] bg-[#111] overflow-hidden border border-[#222] shadow-3xl z-10">
                 <video
                   ref={setVideoElement}
                   muted
@@ -1104,8 +1111,7 @@ export default function Photobooth() {
                   style={{ filter: currentFilter.style }}
                   className="w-full h-full object-cover transform -scale-x-100 transition-all duration-300"
                 />
-
-                {/* HUD: Live Status Indicators (nested inside video wrapper to prevent overlap) */}
+                {/* HUD: Live Status Indicators */}
                 <div className="absolute top-4 left-4 flex items-center gap-2 z-25 font-mono bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-sm border border-white/5">
                   <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></div>
                   <span className="text-[9px] uppercase tracking-widest text-[#eaeaea] font-bold">LIVE VIEW</span>
@@ -1476,27 +1482,11 @@ export default function Photobooth() {
               <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.95)] z-20" />
 
               {previewCanvasDataUrl && (
-                <div className={cn(
-                  "relative max-h-full max-w-full flex items-center justify-center animate-in fade-in zoom-in-95 duration-500 z-10 p-2 select-none md:p-6",
-                  aestheticTheme === 'editorial' && "border border-stone-850 bg-[#080808]/40 p-8 md:p-10"
-                )}>
-                  {aestheticTheme === 'editorial' && (
-                    <>
-                      <div className="absolute top-2 left-3 text-[7.5px] font-mono text-stone-600 tracking-widest font-bold">
-                        [ RENDER_SPECIMEN: {activeLayoutId.toUpperCase()} ]
-                      </div>
-                      <div className="absolute bottom-2 right-3 text-[7.5px] font-mono text-stone-600 tracking-widest font-bold">
-                        [ MATERIAL_THEME: {activeThemeId.toUpperCase()} ]
-                      </div>
-                    </>
-                  )}
+                <div className="relative max-h-full max-w-full flex items-center justify-center animate-in fade-in zoom-in-95 duration-500 z-10 p-2 select-none md:p-6">
                   <img
                     src={previewCanvasDataUrl}
                     alt="Final composited strip"
-                    className={cn(
-                      "max-h-[80vh] md:max-h-[84vh] w-auto max-w-full object-contain shadow-3xl",
-                      aestheticTheme === 'editorial' ? "" : "transform md:rotate-1"
-                    )}
+                    className="max-h-[80vh] md:max-h-[84vh] w-auto max-w-full object-contain shadow-3xl transform md:rotate-1"
                     style={{
                       filter: 'drop-shadow(0 25px 50px rgba(0, 0, 0, 0.7))'
                     }}
