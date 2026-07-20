@@ -149,13 +149,25 @@ export default function Photobooth() {
   const [showAdOverlay, setShowAdOverlay] = useState<boolean>(false);
   const [pendingExportFormat, setPendingExportFormat] = useState<'jpg' | 'png' | 'gif' | null>(null);
 
-  // Mouse position state for Specimen hover trails
+  // Global Custom Cursor & Mouse position states
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [globalMousePos, setGlobalMousePos] = useState({ x: -100, y: -100 });
+  const [isHoveringClickable, setIsHoveringClickable] = useState<boolean>(false);
   const [hoveredSpecimenIndex, setHoveredSpecimenIndex] = useState<number | null>(null);
   const [isFlashing, setIsFlashing] = useState<boolean>(false);
 
-  const handleLobbyMouseMove = (e: React.MouseEvent) => {
-    setMousePosition({ x: e.clientX, y: e.clientY });
+  const handleGlobalMouseMove = (e: React.MouseEvent) => {
+    setGlobalMousePos({ x: e.clientX, y: e.clientY });
+    
+    // Check if hovering a button, link, click trigger or input
+    const target = e.target as HTMLElement;
+    const isClickable = target.closest('button, a, [role="button"], input, select, textarea') !== null;
+    setIsHoveringClickable(isClickable);
+
+    // Sync lobby specimen position if active
+    if (screen === 'landing') {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    }
   };
 
   const isLocked = (layoutId: string) => {
@@ -625,9 +637,9 @@ export default function Photobooth() {
 
   return (
     <div
-      onMouseMove={screen === 'landing' ? handleLobbyMouseMove : undefined}
+      onMouseMove={handleGlobalMouseMove}
       className={cn(
-        "w-screen bg-[#080808] text-[#e0e0e0] font-sans select-none relative transition-colors duration-500",
+        "w-screen bg-[#080808] text-[#e0e0e0] font-sans select-none relative transition-colors duration-500 custom-cursor-active",
         screen === 'landing'
           ? "h-screen overflow-y-auto overflow-x-hidden flex flex-col bg-[#09090b] bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px]"
           : "h-[100dvh] overflow-y-auto md:overflow-hidden overflow-x-hidden flex flex-col items-center justify-center md:p-4"
@@ -1871,6 +1883,37 @@ export default function Photobooth() {
           />
         )}
       </AnimatePresence>
+
+      {/* Retro Pixel-Art Crosshair Cursor (Only rendered on desktop devices) */}
+      <motion.div
+        style={{
+          position: 'fixed',
+          left: globalMousePos.x,
+          top: globalMousePos.y,
+          pointerEvents: 'none',
+          zIndex: 99999,
+          transform: 'translate(-50%, -50%)',
+        }}
+        animate={{
+          scale: isHoveringClickable ? 1.35 : 1,
+          rotate: isHoveringClickable ? 45 : 0,
+        }}
+        transition={{ type: 'spring', stiffness: 450, damping: 24 }}
+        className="hidden md:flex items-center justify-center pointer-events-none"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Top segment */}
+          <rect x="9" y="1" width="2" height="6" fill={isHoveringClickable ? "#8e1616" : "#ffffff"} />
+          {/* Bottom segment */}
+          <rect x="9" y="13" width="2" height="6" fill={isHoveringClickable ? "#8e1616" : "#ffffff"} />
+          {/* Left segment */}
+          <rect x="1" y="9" width="6" height="2" fill={isHoveringClickable ? "#8e1616" : "#ffffff"} />
+          {/* Right segment */}
+          <rect x="13" y="9" width="6" height="2" fill={isHoveringClickable ? "#8e1616" : "#ffffff"} />
+          {/* Center pinpoint */}
+          <rect x="9" y="9" width="2" height="2" fill={isHoveringClickable ? "#8e1616" : "#ffffff"} />
+        </svg>
+      </motion.div>
 
     </div>
   );

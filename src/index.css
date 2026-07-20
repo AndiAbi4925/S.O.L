@@ -114,3 +114,10 @@ html, body {
   90% { clip: rect(135px, 9999px, 120px, 0); transform: skew(0.1deg); }
   100% { clip: rect(70px, 9999px, 105px, 0); transform: skew(-0.1deg); }
 }
+
+@media (pointer: fine) {
+  .custom-cursor-active,
+  .custom-cursor-active * {
+    cursor: none !important;
+  }
+}
