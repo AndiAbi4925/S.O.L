@@ -98,7 +98,7 @@ export default function SharePage({ id }: SharePageProps) {
   // 1. Loading State
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-[#0c0c0c] text-white p-6 font-mono selection:bg-amber-500 selection:text-black">
+    <div className="h-[100dvh] w-screen overflow-y-auto flex flex-col items-center justify-center bg-[#0c0c0c] text-white p-6 font-mono selection:bg-amber-500 selection:text-black">
         <div className="flex flex-col items-center gap-4 max-w-sm text-center">
           <Disc className="w-10 h-10 animate-spin text-amber-500" />
           <p className="text-xs uppercase tracking-[0.2em] text-stone-400">
@@ -112,7 +112,7 @@ export default function SharePage({ id }: SharePageProps) {
   // 2. Error State
   if (error || !shareData) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-[#0c0c0c] text-white p-6 font-mono">
+    <div className="h-[100dvh] w-screen overflow-y-auto flex flex-col items-center justify-center bg-[#0c0c0c] text-white p-6 font-mono">
         <div className="max-w-md bg-[#111] border border-red-950/50 rounded-lg p-8 shadow-2xl flex flex-col items-center text-center gap-5 relative overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-1 bg-red-500 opacity-20" />
           <AlertTriangle className="w-12 h-12 text-red-500 animate-pulse" />
@@ -138,7 +138,7 @@ export default function SharePage({ id }: SharePageProps) {
 
   // 3. Success State
   return (
-    <div className="flex-1 flex flex-col bg-[#0c0c0c] text-white select-none relative overflow-y-auto pb-12 selection:bg-amber-500 selection:text-black">
+    <div className="h-[100dvh] w-screen overflow-y-auto flex flex-col bg-[#0c0c0c] text-white select-none relative pb-12 selection:bg-amber-500 selection:text-black">
       {/* Background retro grain texture overlay */}
       <div className="absolute inset-0 bg-[radial-gradient(#111_1px,transparent_1px)] [background-size:16px_16px] opacity-20 pointer-events-none" />
 
