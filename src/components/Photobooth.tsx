@@ -650,6 +650,9 @@ export default function Photobooth() {
       setIsAnimatedPreview(false);
       setSelectedPhotoIndex(2);
       setScreen('active');
+      if (lobbyScrollRef.current) {
+        lobbyScrollRef.current.scrollTop = 0;
+      }
     }, 220);
     setTimeout(() => {
       setIsFlashing(false);
@@ -666,6 +669,9 @@ export default function Photobooth() {
       setIsAnimatedPreview(false);
       setSelectedPhotoIndex(2);
       setScreen('landing');
+      if (lobbyScrollRef.current) {
+        lobbyScrollRef.current.scrollTop = 0;
+      }
     }, 220);
     setTimeout(() => {
       setIsFlashing(false);
