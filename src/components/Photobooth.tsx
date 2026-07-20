@@ -807,9 +807,9 @@ export default function Photobooth() {
               className="w-full py-20 md:py-28 border-x border-b border-stone-900 bg-[#08080a]/20 px-6 md:px-12 flex justify-center"
             >
               <h2 className="text-3xl md:text-5xl font-serif text-stone-200 tracking-tight leading-tight max-w-5xl text-center font-normal">
-                S.O.L archives the{" "}
+                S.O.L preserves the{" "}
                 <span className="relative inline-block italic text-white pb-1.5 px-0.5">
-                  {"quiet intimacy of the everyday".split("").map((char, index) => (
+                  {"fading warmth of passing hours".split("").map((char, index) => (
                     <motion.span
                       key={index}
                       initial={{ opacity: 0 }}
@@ -839,14 +839,14 @@ export default function Photobooth() {
                       whileInView={{ pathLength: 1 }}
                       viewport={{ once: true }}
                       transition={{
-                        delay: 2.2,
+                        delay: 2.15,
                         duration: 0.7,
                         ease: "easeInOut"
                       }}
                     />
                   </svg>
                 </span>{" "}
-                — translating brief frames of warmth, light, and affection into visual keepsakes.
+                — translating quiet fragments of love, time, and presence into soft paper relics.
               </h2>
             </motion.div>
 
