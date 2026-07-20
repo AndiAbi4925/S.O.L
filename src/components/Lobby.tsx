@@ -168,13 +168,19 @@ export default function Lobby({
                 stroke="#8e1616"
                 strokeWidth="2.5"
                 strokeLinecap="round"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
+                initial={{ pathLength: 0, opacity: 0 }}
+                whileInView={{ pathLength: 1, opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{
-                  delay: 2.15,
-                  duration: 0.7,
-                  ease: "easeInOut"
+                  pathLength: {
+                    delay: 2.15,
+                    duration: 0.7,
+                    ease: "easeInOut"
+                  },
+                  opacity: {
+                    delay: 2.15,
+                    duration: 0.05
+                  }
                 }}
               />
             </svg>
