@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Instagram } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import gsap from 'gsap';
@@ -31,6 +31,27 @@ export default function Lobby({
   const enterStudioBtnRef = useMagnetic(0.38);
   const instagramBtnRef = useMagnetic(0.32);
   const enterPhotostudioBottomBtnRef = useMagnetic(0.38);
+
+  const heroLogoGroupRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (heroLogoGroupRef.current) {
+      gsap.set(heroLogoGroupRef.current, {
+        filter: 'blur(20px)',
+        opacity: 0,
+        scale: 1.04
+      });
+
+      gsap.to(heroLogoGroupRef.current, {
+        filter: 'blur(0px)',
+        opacity: 1,
+        scale: 1,
+        duration: 1.8,
+        ease: 'power2.out',
+        delay: 0.15
+      });
+    }
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     setMousePosition({ x: e.clientX, y: e.clientY });
@@ -138,7 +159,10 @@ export default function Lobby({
           [ SCAN_HERO: PASS_OK ]
         </div>
 
-        <div className="flex gap-2 my-4 select-none">
+        <div 
+          ref={heroLogoGroupRef}
+          className="flex gap-2 my-4 select-none"
+        >
           {["S", ".", "O", ".", "L"].map((char, index) => (
             <span
               key={index}
