@@ -127,6 +127,9 @@ export default function Photobooth() {
   // App Navigation Flow
   const [screen, setScreen] = useState<ScreenState>('landing');
 
+  // Scroll container reference for Lobby smooth scroll triggers
+  const lobbyScrollRef = useRef<HTMLDivElement | null>(null);
+
   // Custom Settings State
   const [activeLayoutId, setActiveLayoutId] = useState<string>('1x4');
   const [activeThemeId, setActiveThemeId] = useState<string>('alabaster');
@@ -664,8 +667,15 @@ export default function Photobooth() {
     }
   };
 
+  const scrollToTop = () => {
+    if (lobbyScrollRef.current) {
+      lobbyScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <div
+      ref={lobbyScrollRef}
       onMouseMove={handleGlobalMouseMove}
       className={cn(
         "w-screen bg-[#080808] text-[#e0e0e0] font-sans select-none relative transition-colors duration-500 custom-cursor-active",
@@ -697,11 +707,21 @@ export default function Photobooth() {
             className="w-full flex flex-col relative z-10 px-4 md:px-8 py-8 max-w-7xl mx-auto"
           >
             {/* Top Grid Menu Bar */}
-            <div className="w-full grid grid-cols-2 md:grid-cols-5 border border-stone-900 bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40">
-              <div className="px-6 py-4 border-r border-stone-900 flex items-center gap-2">
+            <div className="w-full grid grid-cols-2 md:grid-cols-6 border border-stone-900 bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40">
+              {/* Logo Column */}
+              <div className="px-6 py-3.5 border-r border-stone-900 flex items-center justify-center">
+                <img src="/logo.png" alt="S.O.L Logo" className="h-6 w-auto object-contain invert brightness-200" />
+              </div>
+              <button
+                onClick={() => {
+                  playTick();
+                  scrollToTop();
+                }}
+                className="px-6 py-4 border-r border-stone-900 flex items-center gap-2 bg-transparent text-stone-400 hover:text-white transition-colors text-left border-0 cursor-pointer"
+              >
                 <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
                 <span className="text-[10px] uppercase font-mono tracking-widest text-white font-bold">HOME</span>
-              </div>
+              </button>
               <button
                 onClick={() => {
                   playTick();
@@ -735,7 +755,7 @@ export default function Photobooth() {
                   playTick();
                   startNewSession();
                 }}
-                className="px-6 py-4 bg-white text-black hover:bg-stone-150 transition-colors text-[10px] uppercase font-mono tracking-[0.25em] font-bold text-center flex items-center justify-center gap-2 cursor-pointer col-span-2 md:col-span-1"
+                className="px-6 py-4 bg-white text-black hover:bg-stone-150 transition-colors text-[10px] uppercase font-mono tracking-[0.25em] font-bold text-center flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Camera className="w-3.5 h-3.5" />
                 Enter Studio
@@ -764,14 +784,27 @@ export default function Photobooth() {
             </div>
 
             {/* Large Statement Grid Block */}
-            <div className="w-full py-20 md:py-28 border-x border-b border-stone-900 bg-[#08080a]/20 px-6 md:px-12 flex justify-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="w-full py-20 md:py-28 border-x border-b border-stone-900 bg-[#08080a]/20 px-6 md:px-12 flex justify-center"
+            >
               <h2 className="text-3xl md:text-5xl font-serif text-stone-200 tracking-tight leading-tight max-w-5xl text-center font-normal">
-                S.O.L builds <span className="italic text-white underline decoration-[#8e1616]/40 decoration-1 underline-offset-8">meticulously crafted photography spaces</span> that capture the transient warmth of everyday life, helping <span className="text-[#8e1616] font-medium">intimate poetry and memories</span> thrive.
+                S.O.L archives the <span className="italic text-white underline decoration-[#8e1616]/40 decoration-1 underline-offset-8">quiet intimacy of the everyday</span> — translating brief frames of warmth, light, and affection into visual keepsakes.
               </h2>
-            </div>
+            </motion.div>
 
             {/* SPECIMENS: Case studies list with Mouse Reveal Previews */}
-            <section id="specimens" className="w-full border-x border-stone-900 scroll-mt-20">
+            <motion.section
+              id="specimens"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="w-full border-x border-stone-900 scroll-mt-20"
+            >
               <div className="w-full grid grid-cols-2 md:grid-cols-4 border-b border-stone-900 bg-[#0c0c0e]/30 px-6 py-4">
                 <span className="text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold">SPECIMEN PREVIEW</span>
                 <span className="hidden md:inline text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold">FILE_ID</span>
@@ -807,7 +840,7 @@ export default function Photobooth() {
                   </span>
                 </div>
               ))}
-            </section>
+            </motion.section>
 
             {/* SPECIMENS HOVER FLOATING COMPONENT */}
             <AnimatePresence>
@@ -845,7 +878,14 @@ export default function Photobooth() {
             </AnimatePresence>
 
             {/* CAPABILITIES: Accordions / Accolades Table Grid */}
-            <section id="capabilities" className="w-full border-x border-stone-900 scroll-mt-20">
+            <motion.section
+              id="capabilities"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="w-full border-x border-stone-900 scroll-mt-20"
+            >
               <div className="w-full border-b border-stone-900 bg-[#0c0c0e]/30 px-6 py-4">
                 <span className="text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold">STUDIO ARCHIVE SPECIFICATION</span>
               </div>
@@ -861,10 +901,17 @@ export default function Photobooth() {
                   <span className="text-xs font-sans text-stone-300 font-medium text-right">{cap.spec}</span>
                 </div>
               ))}
-            </section>
+            </motion.section>
 
             {/* ABOUT: Column split text */}
-            <section id="about" className="w-full border-x border-b border-stone-900 py-16 md:py-24 px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-8 bg-[#09090b]/10 scroll-mt-20">
+            <motion.section
+              id="about"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="w-full border-x border-b border-stone-900 py-16 md:py-24 px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-8 bg-[#09090b]/10 scroll-mt-20"
+            >
               <div className="space-y-4">
                 <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#8e1616] font-bold block">ABOUT THE DARKROOM</span>
                 <h3 className="text-xl font-serif text-white font-normal italic leading-tight pb-2">Tangible artifacts of affection in a code-driven screen.</h3>
@@ -886,13 +933,17 @@ export default function Photobooth() {
                   By merging nostalgic analog paper textures, adjustable film grain, and clean modern styling grid structures, S.O.L creates a visual bridge to render snapshots that belong in a museum or a memory box. Entry is entirely client-side; your privacy remains yours.
                 </p>
               </div>
-            </section>
+            </motion.section>
 
             {/* CTA Studio trigger before loop */}
-            <div className="w-full flex justify-center py-16 border-x border-stone-900 bg-[#08080a]/20">
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="w-full flex justify-center py-16 border-x border-stone-900 bg-[#08080a]/20"
+            >
+              <button
                 onClick={() => {
                   playTick();
                   startNewSession();
@@ -901,11 +952,17 @@ export default function Photobooth() {
               >
                 <Camera className="w-4 h-4" />
                 ENTER PHOTOSTUDIO
-              </motion.button>
-            </div>
+              </button>
+            </motion.div>
 
             {/* Loop Marquee (At the very bottom of lobby) */}
-            <div className="w-full overflow-hidden border border-stone-900 py-8 bg-[#060608] select-none">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="w-full overflow-hidden border border-stone-900 py-8 bg-[#060608] select-none"
+            >
               <div className="flex whitespace-nowrap">
                 <motion.div
                   animate={{ x: [0, -1000] }}
@@ -932,7 +989,7 @@ export default function Photobooth() {
                   <span className="font-sans font-normal not-italic text-stone-500">SNAP OF LOVE</span>
                 </motion.div>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         )}
 
