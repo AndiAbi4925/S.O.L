@@ -795,8 +795,8 @@ export default function Photobooth() {
                   animate={{
                     opacity: 1,
                     scale: 1,
-                    x: mousePosition.x + 24,
-                    y: mousePosition.y - 120,
+                    x: mousePosition.x + 28,
+                    y: mousePosition.y - 180,
                   }}
                   exit={{ opacity: 0, scale: 0.92 }}
                   transition={{ type: 'spring', stiffness: 240, damping: 24 }}
@@ -807,7 +807,7 @@ export default function Photobooth() {
                     pointerEvents: 'none',
                     zIndex: 999,
                   }}
-                  className="w-44 shadow-[0_20px_50px_rgba(0,0,0,0.9)] border border-stone-850 p-2 bg-[#0c0c0f] flex flex-col gap-2 rounded-none"
+                  className="w-72 md:w-80 shadow-[0_30px_70px_rgba(0,0,0,0.95)] border border-stone-850 p-3 bg-[#0c0c0f] flex flex-col gap-2 rounded-none"
                 >
                   <img
                     src={`/specimen${hoveredSpecimenIndex + 1}${hoveredSpecimenIndex === 3 ? '.png' : '.jpg'}`}
