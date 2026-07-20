@@ -152,6 +152,7 @@ export default function Photobooth() {
   // Mouse position state for Specimen hover trails
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [hoveredSpecimenIndex, setHoveredSpecimenIndex] = useState<number | null>(null);
+  const [isFlashing, setIsFlashing] = useState<boolean>(false);
 
   const handleLobbyMouseMove = (e: React.MouseEvent) => {
     setMousePosition({ x: e.clientX, y: e.clientY });
@@ -584,23 +585,35 @@ export default function Photobooth() {
   }, [showAdOverlay, adCountdown]);
 
   const startNewSession = () => {
-    setCapturedPhotos([]);
-    setCaptureState('idle');
-    setPreviewCanvasDataUrl(null);
-    setLensEffect('none');
-    setIsAnimatedPreview(false);
-    setSelectedPhotoIndex(2);
-    setScreen('active');
+    setIsFlashing(true);
+    setTimeout(() => {
+      setCapturedPhotos([]);
+      setCaptureState('idle');
+      setPreviewCanvasDataUrl(null);
+      setLensEffect('none');
+      setIsAnimatedPreview(false);
+      setSelectedPhotoIndex(2);
+      setScreen('active');
+    }, 220);
+    setTimeout(() => {
+      setIsFlashing(false);
+    }, 550);
   };
 
   const returnToMenu = () => {
-    setCapturedPhotos([]);
-    setCaptureState('idle');
-    setPreviewCanvasDataUrl(null);
-    setLensEffect('none');
-    setIsAnimatedPreview(false);
-    setSelectedPhotoIndex(2);
-    setScreen('landing');
+    setIsFlashing(true);
+    setTimeout(() => {
+      setCapturedPhotos([]);
+      setCaptureState('idle');
+      setPreviewCanvasDataUrl(null);
+      setLensEffect('none');
+      setIsAnimatedPreview(false);
+      setSelectedPhotoIndex(2);
+      setScreen('landing');
+    }, 220);
+    setTimeout(() => {
+      setIsFlashing(false);
+    }, 550);
   };
 
   const scrollToSection = (id: string) => {
@@ -1844,6 +1857,19 @@ export default function Photobooth() {
           )}
         </AnimatePresence>
 
+      </AnimatePresence>
+
+      {/* Retro Flash Screen Transition */}
+      <AnimatePresence>
+        {isFlashing && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 0] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.55, ease: "easeInOut" }}
+            className="fixed inset-0 pointer-events-none bg-white z-[9999]"
+          />
+        )}
       </AnimatePresence>
 
     </div>
