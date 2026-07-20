@@ -36,13 +36,9 @@ export default function Lobby({
   };
 
   return (
-    <motion.div
-      key="landing"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+    <div
       onMouseMove={handleMouseMove}
-      className="w-full flex flex-col relative z-10 px-4 md:px-8 py-8 max-w-7xl mx-auto"
+      className="w-full flex flex-col"
     >
       {/* Top Grid Menu Bar */}
       <div className={cn(
@@ -389,6 +385,6 @@ export default function Lobby({
           </motion.div>
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }

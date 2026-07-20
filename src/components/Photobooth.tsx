@@ -716,12 +716,20 @@ export default function Photobooth() {
 
         {/* SCREEN 1: LANDING / OPENING PAGE (Signal-A Inspired) */}
         {screen === 'landing' && (
-          <Lobby
-            startNewSession={startNewSession}
-            scrollToTop={scrollToTop}
-            scrollToSection={scrollToSection}
-            isScrolled={isScrolled}
-          />
+          <motion.div
+            key="landing"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-full flex flex-col relative z-10 px-4 md:px-8 py-8 max-w-7xl mx-auto"
+          >
+            <Lobby
+              startNewSession={startNewSession}
+              scrollToTop={scrollToTop}
+              scrollToSection={scrollToSection}
+              isScrolled={isScrolled}
+            />
+          </motion.div>
         )}
 
         {/* SCREEN 2: ACTIVE PHOTOBOOTH WORKSPACE */}
