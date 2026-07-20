@@ -20,9 +20,11 @@ export function useMagnetic(strength = 0.35) {
       const rect = el.getBoundingClientRect();
       const x = e.clientX - rect.left - rect.width / 2;
       const y = e.clientY - rect.top - rect.height / 2;
+      
+      const target = el.querySelector('.magnetic-inner') || el;
 
       // Elastic pull towards the pointer coordinates
-      gsap.to(el, {
+      gsap.to(target, {
         x: x * strength,
         y: y * strength,
         scale: 1.05,
@@ -32,8 +34,10 @@ export function useMagnetic(strength = 0.35) {
     };
 
     const handleMouseLeave = () => {
+      const target = el.querySelector('.magnetic-inner') || el;
+      
       // Elastic spring back to original origin
-      gsap.to(el, {
+      gsap.to(target, {
         x: 0,
         y: 0,
         scale: 1,

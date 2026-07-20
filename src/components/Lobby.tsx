@@ -60,7 +60,9 @@ export default function Lobby({
           }}
           className="px-6 py-3.5 border-r border-stone-900 flex items-center justify-center bg-transparent border-y-0 border-l-0 cursor-pointer hover:bg-white/5 transition-colors"
         >
-          <img src="/logo.png" alt="S.O.L Logo" className="h-7 w-auto object-contain" />
+          <div className="magnetic-inner flex items-center justify-center">
+            <img src="/logo.png" alt="S.O.L Logo" className="h-7 w-auto object-contain" />
+          </div>
         </button>
         <button
           ref={specimensBtnRef}
@@ -70,7 +72,7 @@ export default function Lobby({
           }}
           className="px-6 py-4 border-r border-stone-900 text-stone-400 hover:text-white transition-colors text-[10px] uppercase font-mono tracking-widest font-bold flex items-center bg-transparent border-0 cursor-pointer text-left"
         >
-          Specimens
+          <span className="magnetic-inner">Specimens</span>
         </button>
         <button
           ref={capabilitiesBtnRef}
@@ -80,7 +82,7 @@ export default function Lobby({
           }}
           className="px-6 py-4 border-r border-stone-900 text-stone-400 hover:text-white transition-colors text-[10px] uppercase font-mono tracking-widest font-bold flex items-center bg-transparent border-0 cursor-pointer text-left"
         >
-          Capabilities
+          <span className="magnetic-inner">Capabilities</span>
         </button>
         <button
           ref={aboutBtnRef}
@@ -90,7 +92,7 @@ export default function Lobby({
           }}
           className="px-6 py-4 border-r border-stone-900 text-stone-400 hover:text-white transition-colors text-[10px] uppercase font-mono tracking-widest font-bold flex items-center bg-transparent border-0 cursor-pointer text-left"
         >
-          About
+          <span className="magnetic-inner">About</span>
         </button>
 
         <button
@@ -101,8 +103,10 @@ export default function Lobby({
           }}
           className="px-6 py-4 bg-white text-black hover:bg-stone-150 transition-colors text-[10px] uppercase font-mono tracking-[0.25em] font-bold text-center flex items-center justify-center gap-2 cursor-pointer col-span-2 md:col-span-1"
         >
-          <Camera className="w-3.5 h-3.5" />
-          Enter Studio
+          <div className="magnetic-inner flex items-center justify-center gap-2">
+            <Camera className="w-3.5 h-3.5" />
+            Enter Studio
+          </div>
         </button>
       </div>
 
@@ -311,8 +315,10 @@ export default function Lobby({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-[9px] font-mono uppercase tracking-[0.2em] text-stone-300 hover:text-white transition-colors border border-stone-850 hover:border-[#8e1616]/40 px-3.5 py-2 bg-[#0c0c0f]/80 cursor-pointer"
           >
-            <Instagram className="w-3.5 h-3.5 text-stone-400 group-hover:text-white" />
-            @snapoflove.id
+            <div className="magnetic-inner flex items-center gap-2">
+              <Instagram className="w-3.5 h-3.5 text-stone-400 group-hover:text-white" />
+              <span>@snapoflove.id</span>
+            </div>
           </a>
         </div>
         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 text-stone-400 text-xs leading-relaxed font-normal">
@@ -341,8 +347,10 @@ export default function Lobby({
           }}
           className="px-12 py-6 bg-white text-black hover:bg-stone-150 rounded-none text-xs font-bold uppercase tracking-[0.4em] shadow-2xl flex items-center justify-center gap-3 transition-colors cursor-pointer"
         >
-          <Camera className="w-4 h-4" />
-          ENTER PHOTOSTUDIO
+          <div className="magnetic-inner flex items-center justify-center gap-3">
+            <Camera className="w-4 h-4" />
+            ENTER PHOTOSTUDIO
+          </div>
         </button>
       </motion.div>
 
