@@ -778,7 +778,7 @@ export default function Photobooth() {
             </div>
 
             {/* CRT glitch LOGO Hero */}
-            <div className="w-full flex flex-col items-center justify-center py-20 border-x border-b border-stone-900 bg-[#09090c]/40 relative">
+            <div className="w-full flex flex-col items-center justify-center py-20 border-x border-b border-stone-900 bg-[#09090c]/40 relative min-h-[calc(100vh-140px)]">
               <div className="absolute top-4 left-6 text-[8px] font-mono text-stone-600 tracking-widest font-bold">
                 [ ENGINE_CODE: SOL_V2 // CLIENT_RENDER ]
               </div>
