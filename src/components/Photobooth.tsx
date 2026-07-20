@@ -603,13 +603,20 @@ export default function Photobooth() {
     setScreen('landing');
   };
 
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div
       onMouseMove={screen === 'landing' ? handleLobbyMouseMove : undefined}
       className={cn(
         "w-screen bg-[#080808] text-[#e0e0e0] font-sans select-none relative transition-colors duration-500",
         screen === 'landing'
-          ? "min-h-screen overflow-y-auto overflow-x-hidden flex flex-col bg-[#09090b] bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px]"
+          ? "h-screen overflow-y-auto overflow-x-hidden flex flex-col bg-[#09090b] bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px]"
           : "h-[100dvh] overflow-y-auto md:overflow-hidden overflow-x-hidden flex flex-col items-center justify-center md:p-4"
       )}
     >
@@ -641,15 +648,33 @@ export default function Photobooth() {
                 <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
                 <span className="text-[10px] uppercase font-mono tracking-widest text-white font-bold">HOME</span>
               </div>
-              <a href="#specimens" className="px-6 py-4 border-r border-stone-900 text-stone-400 hover:text-white transition-colors text-[10px] uppercase font-mono tracking-widest font-bold flex items-center">
+              <button
+                onClick={() => {
+                  playTick();
+                  scrollToSection('specimens');
+                }}
+                className="px-6 py-4 border-r border-stone-900 text-stone-400 hover:text-white transition-colors text-[10px] uppercase font-mono tracking-widest font-bold flex items-center bg-transparent border-0 cursor-pointer text-left"
+              >
                 Specimens
-              </a>
-              <a href="#capabilities" className="px-6 py-4 border-r border-stone-900 text-stone-400 hover:text-white transition-colors text-[10px] uppercase font-mono tracking-widest font-bold flex items-center">
+              </button>
+              <button
+                onClick={() => {
+                  playTick();
+                  scrollToSection('capabilities');
+                }}
+                className="px-6 py-4 border-r border-stone-900 text-stone-400 hover:text-white transition-colors text-[10px] uppercase font-mono tracking-widest font-bold flex items-center bg-transparent border-0 cursor-pointer text-left"
+              >
                 Capabilities
-              </a>
-              <a href="#about" className="px-6 py-4 border-r border-stone-900 text-stone-400 hover:text-white transition-colors text-[10px] uppercase font-mono tracking-widest font-bold flex items-center">
+              </button>
+              <button
+                onClick={() => {
+                  playTick();
+                  scrollToSection('about');
+                }}
+                className="px-6 py-4 border-r border-stone-900 text-stone-400 hover:text-white transition-colors text-[10px] uppercase font-mono tracking-widest font-bold flex items-center bg-transparent border-0 cursor-pointer text-left"
+              >
                 About
-              </a>
+              </button>
               
               {/* Integrated BGM Spindle Deck in Header */}
               <div className="px-6 py-2 border-r border-stone-900 flex items-center justify-between gap-4 font-mono text-[9px] order-last md:order-none col-span-2 md:col-span-1 border-t md:border-t-0 border-stone-900">
@@ -772,7 +797,7 @@ export default function Photobooth() {
                   className="w-44 shadow-[0_20px_50px_rgba(0,0,0,0.9)] border border-stone-850 p-2 bg-[#0c0c0f] flex flex-col gap-2 rounded-none"
                 >
                   <img
-                    src={`/specimen${hoveredSpecimenIndex + 1}.png`}
+                    src={`/specimen${hoveredSpecimenIndex + 1}${hoveredSpecimenIndex === 3 ? '.png' : '.jpg'}`}
                     alt="Specimen Preview"
                     className="w-full h-auto object-contain border border-stone-900"
                   />
