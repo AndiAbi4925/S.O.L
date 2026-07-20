@@ -224,7 +224,7 @@ export function startLofiBgm() {
     // Create main volume node for BGM to allow fading and clean shutdown
     bgmVolumeNode = ctx.createGain();
     bgmVolumeNode.gain.setValueAtTime(0.001, ctx.currentTime);
-    bgmVolumeNode.gain.exponentialRampToValueAtTime(0.9, ctx.currentTime + 1.5);
+    bgmVolumeNode.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 1.5);
     bgmVolumeNode.connect(ctx.destination);
 
     // 1. Start continuous vinyl crackle
@@ -240,7 +240,7 @@ export function startLofiBgm() {
     noiseFilter.Q.value = 0.8;
 
     const noiseGain = ctx.createGain();
-    noiseGain.gain.value = 0.45; // subtle record crackle
+    noiseGain.gain.value = 0.18; // subtle record crackle
 
     vinylSrc.connect(noiseFilter);
     noiseFilter.connect(noiseGain);

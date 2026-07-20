@@ -222,6 +222,35 @@ export default function Photobooth() {
   const activeTheme = CARD_THEMES[activeThemeId];
   const currentFilter = VISUAL_FILTERS[activeFilterId];
 
+  // Autoplay BGM with browser interaction fallbacks
+  useEffect(() => {
+    const triggerAutoplay = () => {
+      startLofiBgm();
+      setIsBgmPlaying(true);
+    };
+
+    // Try immediately
+    triggerAutoplay();
+
+    // Fallback: browser autoplay block bypasses on first window interaction
+    const handleInteraction = () => {
+      triggerAutoplay();
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+      window.removeEventListener('keydown', handleInteraction);
+    };
+
+    window.addEventListener('click', handleInteraction);
+    window.addEventListener('touchstart', handleInteraction);
+    window.addEventListener('keydown', handleInteraction);
+
+    return () => {
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+      window.removeEventListener('keydown', handleInteraction);
+    };
+  }, []);
+
   // Initialize and keep Camera alive or stop based on navigation screen and video element mount
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -668,7 +697,7 @@ export default function Photobooth() {
             className="w-full flex flex-col relative z-10 px-4 md:px-8 py-8 max-w-7xl mx-auto"
           >
             {/* Top Grid Menu Bar */}
-            <div className="w-full grid grid-cols-2 md:grid-cols-6 border border-stone-900 bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40">
+            <div className="w-full grid grid-cols-2 md:grid-cols-5 border border-stone-900 bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40">
               <div className="px-6 py-4 border-r border-stone-900 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
                 <span className="text-[10px] uppercase font-mono tracking-widest text-white font-bold">HOME</span>
@@ -700,25 +729,6 @@ export default function Photobooth() {
               >
                 About
               </button>
-              
-              {/* Integrated BGM Spindle Deck in Header */}
-              <div className="px-6 py-2 border-r border-stone-900 flex items-center justify-between gap-4 font-mono text-[9px] order-last md:order-none col-span-2 md:col-span-1 border-t md:border-t-0 border-stone-900">
-                <span className="text-stone-500 font-bold tracking-wider">AMB_TAPE:</span>
-                <button
-                  onClick={() => {
-                    playTick();
-                    toggleBgm();
-                  }}
-                  className={cn(
-                    "px-2.5 py-1 border rounded-xs font-bold transition-all cursor-pointer",
-                    isBgmPlaying 
-                      ? "bg-red-950/20 text-red-500 border-red-500/30 animate-pulse" 
-                      : "bg-transparent text-stone-500 border-stone-850 hover:text-stone-300 hover:border-stone-750"
-                  )}
-                >
-                  {isBgmPlaying ? "ON" : "MUTED"}
-                </button>
-              </div>
 
               <button
                 onClick={() => {
@@ -1105,54 +1115,7 @@ export default function Photobooth() {
                 </button>
               </div>
 
-              {/* Music Box Widget (Available on Screen 2) */}
-              <div className="mt-6 pt-5 border-t border-[#222]/80">
-                <div className="bg-[#111] border border-[#222] rounded-lg p-3.5 flex items-center justify-between gap-4 shadow-2xl relative overflow-hidden select-none">
-                  {/* Retro tape stripes */}
-                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-amber-500 to-indigo-500 opacity-20" />
 
-                  {/* Cassette layout reels */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="flex items-center justify-center relative w-11 h-7 bg-stone-900 border border-stone-800 rounded-xs overflow-hidden">
-                      <div className="flex gap-2">
-                        <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
-                          <div className="w-1 h-1 bg-stone-500 rounded-full" />
-                        </div>
-                        <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
-                          <div className="w-1 h-1 bg-stone-500 rounded-full" />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col justify-center text-left">
-                      <p className="text-[9px] uppercase font-mono tracking-wider text-stone-500">Lo-Fi Ambient</p>
-                      <p className="text-[10px] uppercase font-bold tracking-widest text-[#eaeaea] font-mono">SOL TAPE 01</p>
-                    </div>
-                  </div>
-
-                  {/* Cassette deck control buttons */}
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center pr-1.5">
-                      <span className="relative flex h-2 w-2">
-                        <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-red-600", !isBgmPlaying && "hidden")} />
-                        <span className={cn("relative inline-flex rounded-full h-2 w-2", isBgmPlaying ? "bg-red-600" : "bg-stone-800")} />
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={toggleBgm}
-                      className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center border transition-all cursor-pointer",
-                        isBgmPlaying
-                          ? "bg-white text-black border-white hover:bg-stone-200"
-                          : "bg-transparent text-stone-400 border-stone-800 hover:text-white hover:border-[#444] hover:bg-white/5"
-                      )}
-                    >
-                      {isBgmPlaying ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                </div>
-              </div>
             </aside>
 
             {/* Live Feed Video Viewport */}
@@ -1482,55 +1445,6 @@ export default function Photobooth() {
                   >
                     Return to Menu
                   </button>
-                </div>
-
-                {/* Music Box Widget (Available on Screen 3) */}
-                <div className="mt-6 pt-5 border-t border-[#222]/80">
-                  <div className="bg-[#111] border border-[#222] rounded-lg p-3.5 flex items-center justify-between gap-4 shadow-2xl relative overflow-hidden select-none">
-                    {/* Retro tape stripes */}
-                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-amber-500 to-indigo-500 opacity-20" />
-
-                    {/* Cassette layout reels */}
-                    <div className="flex items-center gap-3.5">
-                      <div className="flex items-center justify-center relative w-11 h-7 bg-stone-900 border border-stone-800 rounded-xs overflow-hidden">
-                        <div className="flex gap-2">
-                          <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
-                            <div className="w-1 h-1 bg-stone-500 rounded-full" />
-                          </div>
-                          <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
-                            <div className="w-1 h-1 bg-stone-500 rounded-full" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col justify-center text-left">
-                        <p className="text-[9px] uppercase font-mono tracking-wider text-stone-500">Lo-Fi Ambient</p>
-                        <p className="text-[10px] uppercase font-bold tracking-widest text-[#eaeaea] font-mono">SOL TAPE 01</p>
-                      </div>
-                    </div>
-
-                    {/* Cassette deck control buttons */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center justify-center pr-1.5">
-                        <span className="relative flex h-2 w-2">
-                          <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-red-600", !isBgmPlaying && "hidden")} />
-                          <span className={cn("relative inline-flex rounded-full h-2 w-2", isBgmPlaying ? "bg-red-600" : "bg-stone-800")} />
-                        </span>
-                      </div>
-
-                      <button
-                        onClick={toggleBgm}
-                        className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center border transition-all cursor-pointer",
-                          isBgmPlaying
-                            ? "bg-white text-black border-white hover:bg-stone-200"
-                            : "bg-transparent text-stone-400 border-stone-800 hover:text-white hover:border-[#444] hover:bg-white/5"
-                        )}
-                      >
-                        {isBgmPlaying ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-                  </div>
                 </div>
               </div>
             </aside>
