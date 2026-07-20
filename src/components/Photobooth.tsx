@@ -40,6 +40,7 @@ import {
 } from '../lib/renderUtils';
 import { createGifExporter } from '../lib/exportUtils';
 import { playTick, playShutter, playDing, startLofiBgm, stopLofiBgm } from '../lib/audioUtils';
+import { useMagnetic } from '../hooks/useMagnetic';
 
 type ScreenState = 'landing' | 'active' | 'review';
 type CapturingState = 'idle' | 'countdown' | 'capturing' | 'completed';
@@ -129,6 +130,15 @@ export default function Photobooth() {
 
   // Scroll container reference for Lobby smooth scroll triggers
   const lobbyScrollRef = useRef<HTMLDivElement | null>(null);
+
+  // Magnetic hover element refs powered by GSAP
+  const homeBtnRef = useMagnetic(0.28);
+  const specimensBtnRef = useMagnetic(0.28);
+  const capabilitiesBtnRef = useMagnetic(0.28);
+  const aboutBtnRef = useMagnetic(0.28);
+  const enterStudioBtnRef = useMagnetic(0.38);
+  const instagramBtnRef = useMagnetic(0.32);
+  const enterPhotostudioBottomBtnRef = useMagnetic(0.38);
 
   // Custom Settings State
   const [activeLayoutId, setActiveLayoutId] = useState<string>('1x4');
@@ -713,6 +723,7 @@ export default function Photobooth() {
                 <img src="/logo.png" alt="S.O.L Logo" className="h-6 w-auto object-contain invert brightness-200" />
               </div>
               <button
+                ref={homeBtnRef}
                 onClick={() => {
                   playTick();
                   scrollToTop();
@@ -723,6 +734,7 @@ export default function Photobooth() {
                 <span className="text-[10px] uppercase font-mono tracking-widest text-white font-bold">HOME</span>
               </button>
               <button
+                ref={specimensBtnRef}
                 onClick={() => {
                   playTick();
                   scrollToSection('specimens');
@@ -732,6 +744,7 @@ export default function Photobooth() {
                 Specimens
               </button>
               <button
+                ref={capabilitiesBtnRef}
                 onClick={() => {
                   playTick();
                   scrollToSection('capabilities');
@@ -741,6 +754,7 @@ export default function Photobooth() {
                 Capabilities
               </button>
               <button
+                ref={aboutBtnRef}
                 onClick={() => {
                   playTick();
                   scrollToSection('about');
@@ -751,6 +765,7 @@ export default function Photobooth() {
               </button>
 
               <button
+                ref={enterStudioBtnRef}
                 onClick={() => {
                   playTick();
                   startNewSession();
@@ -916,6 +931,7 @@ export default function Photobooth() {
                 <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#8e1616] font-bold block">ABOUT THE DARKROOM</span>
                 <h3 className="text-xl font-serif text-white font-normal italic leading-tight pb-2">Tangible artifacts of affection in a code-driven screen.</h3>
                 <a
+                  ref={instagramBtnRef}
                   href="https://www.instagram.com/snapoflove.id/"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -944,6 +960,7 @@ export default function Photobooth() {
               className="w-full flex justify-center py-16 border-x border-stone-900 bg-[#08080a]/20"
             >
               <button
+                ref={enterPhotostudioBottomBtnRef}
                 onClick={() => {
                   playTick();
                   startNewSession();
