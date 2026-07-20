@@ -140,6 +140,9 @@ export default function Photobooth() {
   const instagramBtnRef = useMagnetic(0.32);
   const enterPhotostudioBottomBtnRef = useMagnetic(0.38);
 
+  // Scroll header styling state
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
+
   // Custom Settings State
   const [activeLayoutId, setActiveLayoutId] = useState<string>('1x4');
   const [activeThemeId, setActiveThemeId] = useState<string>('alabaster');
@@ -235,8 +238,22 @@ export default function Photobooth() {
   const activeTheme = CARD_THEMES[activeThemeId];
   const currentFilter = VISUAL_FILTERS[activeFilterId];
 
-  // Autoplay BGM with browser interaction fallbacks
+  // Autoplay BGM with browser interaction fallbacks and preload specimen images
   useEffect(() => {
+    // 1. Preload lobby specimen preview graphics to prevent hover lag
+    const preloadImages = [
+      '/specimen1.jpg',
+      '/specimen2.jpg',
+      '/specimen3.jpg',
+      '/specimen4.png',
+      '/specimen5.jpg'
+    ];
+    preloadImages.forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+
+    // 2. Play lo-fi background ambient stream
     const triggerAutoplay = () => {
       startLofiBgm();
       setIsBgmPlaying(true);
@@ -683,10 +700,15 @@ export default function Photobooth() {
     }
   };
 
+  const handleLobbyScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setIsScrolled(e.currentTarget.scrollTop > 35);
+  };
+
   return (
     <div
       ref={lobbyScrollRef}
       onMouseMove={handleGlobalMouseMove}
+      onScroll={screen === 'landing' ? handleLobbyScroll : undefined}
       className={cn(
         "w-screen bg-[#080808] text-[#e0e0e0] font-sans select-none relative transition-colors duration-500 custom-cursor-active",
         screen === 'landing'
@@ -717,7 +739,12 @@ export default function Photobooth() {
             className="w-full flex flex-col relative z-10 px-4 md:px-8 py-8 max-w-7xl mx-auto"
           >
             {/* Top Grid Menu Bar */}
-            <div className="w-full grid grid-cols-2 md:grid-cols-6 border border-stone-900 bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40">
+            <div className={cn(
+              "w-full grid grid-cols-2 md:grid-cols-6 border bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40 transition-all duration-300",
+              isScrolled 
+                ? "border-[#8e1616]/30 bg-[#09090b]/95 shadow-[0_10px_30px_rgba(0,0,0,0.85)]" 
+                : "border-stone-900 bg-[#09090b]/20"
+            )}>
               {/* Logo Column */}
               <div className="px-6 py-3.5 border-r border-stone-900 flex items-center justify-center">
                 <img src="/logo.png" alt="S.O.L Logo" className="h-7 w-auto object-contain" />
