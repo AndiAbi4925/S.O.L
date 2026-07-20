@@ -149,6 +149,15 @@ export default function Photobooth() {
   const [showAdOverlay, setShowAdOverlay] = useState<boolean>(false);
   const [pendingExportFormat, setPendingExportFormat] = useState<'jpg' | 'png' | 'gif' | null>(null);
 
+  // Aesthetic Theme state ('classic' | 'editorial')
+  const [aestheticTheme, setAestheticTheme] = useState<'classic' | 'editorial'>(
+    () => (localStorage.getItem('sol_aesthetic_theme') as 'classic' | 'editorial') || 'classic'
+  );
+
+  useEffect(() => {
+    localStorage.setItem('sol_aesthetic_theme', aestheticTheme);
+  }, [aestheticTheme]);
+
   const isLocked = (layoutId: string) => {
     return false;
   };
@@ -596,13 +605,49 @@ export default function Photobooth() {
   };
 
   return (
-    <div className="h-[100dvh] w-screen overflow-y-auto md:overflow-hidden overflow-x-hidden bg-[#080808] text-[#e0e0e0] font-sans flex flex-col items-center justify-center select-none relative md:p-4">
+    <div className={cn(
+      "h-[100dvh] w-screen overflow-y-auto md:overflow-hidden overflow-x-hidden bg-[#080808] text-[#e0e0e0] font-sans flex flex-col items-center justify-center select-none relative md:p-4",
+      aestheticTheme === 'editorial' && "theme-editorial"
+    )}>
 
       {/* Background Ambience Light Glows (Corner Edges) */}
       <div className="absolute -top-[200px] -left-[200px] w-[500px] h-[500px] bg-[#8e1616] rounded-full blur-[140px] pointer-events-none z-0 animate-ambient-1" />
       <div className="absolute -bottom-[200px] -right-[200px] w-[500px] h-[500px] bg-[#8e1616] rounded-full blur-[140px] pointer-events-none z-0 animate-ambient-2" />
       <div className="absolute -top-[150px] -right-[150px] w-[400px] h-[400px] bg-[#dfccd5] rounded-full blur-[120px] pointer-events-none z-0 animate-ambient-3" />
       <div className="absolute -bottom-[150px] -left-[150px] w-[400px] h-[400px] bg-[#dfccd5] rounded-full blur-[120px] pointer-events-none z-0 animate-ambient-4" />
+
+      {/* Aesthetic Theme Switcher */}
+      <div className="absolute top-4 right-4 flex items-center gap-1 bg-[#121212] border border-stone-850 p-1 text-[9px] uppercase tracking-wider font-mono z-50 rounded-sm shadow-[0_10px_30px_-5px_rgba(0,0,0,0.8)] select-none">
+        <span className="text-stone-500 px-2 py-0.5 select-none font-bold">STYLE:</span>
+        <button
+          onClick={() => {
+            playTick();
+            setAestheticTheme('classic');
+          }}
+          className={cn(
+            "px-2 py-0.5 transition-colors cursor-pointer rounded-xs",
+            aestheticTheme === 'classic'
+              ? "bg-white text-black font-bold"
+              : "text-stone-400 hover:text-white"
+          )}
+        >
+          Classic
+        </button>
+        <button
+          onClick={() => {
+            playTick();
+            setAestheticTheme('editorial');
+          }}
+          className={cn(
+            "px-2 py-0.5 transition-colors cursor-pointer rounded-xs",
+            aestheticTheme === 'editorial'
+              ? "bg-stone-800 text-white font-bold"
+              : "text-stone-400 hover:text-white"
+          )}
+        >
+          Editorial
+        </button>
+      </div>
 
       <AnimatePresence mode="wait">
 
@@ -614,8 +659,18 @@ export default function Photobooth() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.7, ease: 'easeOut' }}
-            className="w-full max-w-4xl min-h-[85vh] bg-[#0f0f0f]/90 border border-[#222] backdrop-blur-2xl rounded-2xl p-8 md:p-14 flex flex-col md:flex-row gap-12 items-center justify-between shadow-3xl z-10 mx-4"
+            className="w-full max-w-4xl min-h-[85vh] bg-[#0f0f0f]/90 border border-[#222] backdrop-blur-2xl rounded-2xl p-8 md:p-14 flex flex-col md:flex-row gap-12 items-center justify-between shadow-3xl z-10 mx-4 relative overflow-hidden"
           >
+            {aestheticTheme === 'editorial' && (
+              <>
+                <div className="absolute top-3 left-3 text-[7.5px] font-mono text-stone-600 tracking-widest font-bold">
+                  [ CROP_MARGIN: 40px // SIZE: 600x1800 ]
+                </div>
+                <div className="absolute bottom-3 right-3 text-[7.5px] font-mono text-stone-600 tracking-widest font-bold">
+                  S.O.L BOOTH TAPE COMPOSITOR SYSTEM v2.1
+                </div>
+              </>
+            )}
             {/* Branding Text column */}
             <div className="flex-1 flex flex-col justify-center text-left space-y-8">
               <div className="space-y-4">
@@ -738,7 +793,7 @@ export default function Photobooth() {
                   rotateX: 0,
                   rotateY: 0,
                   scale: 1,
-                  rotateZ: 2, // base rotation
+                  rotateZ: aestheticTheme === 'editorial' ? 0 : 2, // base rotation
                   y: [0, -6, 0], // constant floating loop
                 }}
                 transition={isCardHovered ? {
@@ -754,9 +809,14 @@ export default function Photobooth() {
                   duration: 0.5
                 }}
                 style={{ transformStyle: 'preserve-3d' }}
-                className="relative bg-[#fbebe7] text-[#1a1a1a] p-4 shadow-[0_24px_50px_-10px_rgba(0,0,0,0.8)] border border-[#dfccd5]/50 flex flex-col gap-3 justify-center items-center w-64 md:w-72 select-none cursor-pointer"
+                className={cn(
+                  "relative p-4 shadow-[0_24px_50px_-10px_rgba(0,0,0,0.8)] flex flex-col gap-3 justify-center items-center w-64 md:w-72 select-none cursor-pointer",
+                  aestheticTheme === 'editorial'
+                    ? "bg-[#0c0c0e] text-[#f4f4f5] border border-[#27273a]"
+                    : "bg-[#fbebe7] text-[#1a1a1a] border border-[#dfccd5]/50"
+                )}
               >
-                <div className="absolute top-2 right-2 text-stone-300 transform font-mono text-[9px] font-bold">PREVIEW SPECIMEN</div>
+                <div className="absolute top-2 right-2 text-stone-500 font-mono text-[9px] font-bold">PREVIEW SPECIMEN</div>
 
                 {/* Simulated photocard frames */}
                 <div className="w-full aspect-[4/3] bg-stone-900 border border-black/10 overflow-hidden relative flex items-center justify-center">
@@ -771,9 +831,15 @@ export default function Photobooth() {
                 </div>
 
                 {/* Stamp & Branding signoff */}
-                <div className="w-full flex items-center justify-between text-black px-1 mt-1 text-[9px]">
+                <div className={cn(
+                  "w-full flex items-center justify-between px-1 mt-1 text-[9px]",
+                  aestheticTheme === 'editorial' ? "text-stone-400" : "text-black"
+                )}>
                   <span className="font-mono text-[#8e1616] font-bold tracking-tighter">'26.05.20</span>
-                  <span className="font-sans font-bold tracking-[0.15em] uppercase text-stone-700">SNAP OF LOVE</span>
+                  <span className={cn(
+                    "font-sans font-bold tracking-[0.15em] uppercase",
+                    aestheticTheme === 'editorial' ? "text-stone-400" : "text-stone-700"
+                  )}>SNAP OF LOVE</span>
                 </div>
               </motion.div>
             </div>
@@ -896,7 +962,7 @@ export default function Photobooth() {
                     className="w-full mt-3 py-2.5 bg-gradient-to-r from-rose-500/10 to-rose-700/10 border border-rose-500/30 hover:border-rose-500/60 text-rose-500 text-[10px] font-bold uppercase tracking-wider rounded-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer font-bold"
                   >
                     <Heart className="w-3.5 h-3.5 text-rose-500" />
-                    Support the Creator (Rp 15,000)
+                    Support the Creator
                   </button>
                 </section>
 
@@ -1016,7 +1082,20 @@ export default function Photobooth() {
               <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.95)] z-20" />
 
               {/* Stream Video Wrapper with applied selected LIVE FILTER style */}
-              <div className="relative w-full max-w-4xl aspect-[4/3] bg-[#111] overflow-hidden border border-[#222] shadow-3xl z-10">
+              <div className={cn(
+                "relative w-full max-w-4xl aspect-[4/3] bg-[#111] overflow-hidden border border-[#222] shadow-3xl z-10 transition-all duration-300",
+                aestheticTheme === 'editorial' && "border-stone-850 p-4 md:p-6 bg-[#080808]"
+              )}>
+                {aestheticTheme === 'editorial' && (
+                  <>
+                    <div className="absolute top-1 left-3 text-[7.5px] font-mono text-stone-600 tracking-widest font-bold">
+                      [ HUD_VIEW: LIVE_FEED // APERTURE: F/2.8 ]
+                    </div>
+                    <div className="absolute top-1 right-3 text-[7.5px] font-mono text-stone-600 tracking-widest font-bold">
+                      SHUTTER: 1/125s // ISO: 400
+                    </div>
+                  </>
+                )}
                 <video
                   ref={setVideoElement}
                   muted
@@ -1397,11 +1476,27 @@ export default function Photobooth() {
               <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.95)] z-20" />
 
               {previewCanvasDataUrl && (
-                <div className="relative max-h-full max-w-full flex items-center justify-center animate-in fade-in zoom-in-95 duration-500 z-10 p-2 select-none md:p-6">
+                <div className={cn(
+                  "relative max-h-full max-w-full flex items-center justify-center animate-in fade-in zoom-in-95 duration-500 z-10 p-2 select-none md:p-6",
+                  aestheticTheme === 'editorial' && "border border-stone-850 bg-[#080808]/40 p-8 md:p-10"
+                )}>
+                  {aestheticTheme === 'editorial' && (
+                    <>
+                      <div className="absolute top-2 left-3 text-[7.5px] font-mono text-stone-600 tracking-widest font-bold">
+                        [ RENDER_SPECIMEN: {activeLayoutId.toUpperCase()} ]
+                      </div>
+                      <div className="absolute bottom-2 right-3 text-[7.5px] font-mono text-stone-600 tracking-widest font-bold">
+                        [ MATERIAL_THEME: {activeThemeId.toUpperCase()} ]
+                      </div>
+                    </>
+                  )}
                   <img
                     src={previewCanvasDataUrl}
                     alt="Final composited strip"
-                    className="max-h-[80vh] md:max-h-[84vh] w-auto max-w-full object-contain shadow-3xl transform md:rotate-1"
+                    className={cn(
+                      "max-h-[80vh] md:max-h-[84vh] w-auto max-w-full object-contain shadow-3xl",
+                      aestheticTheme === 'editorial' ? "" : "transform md:rotate-1"
+                    )}
                     style={{
                       filter: 'drop-shadow(0 25px 50px rgba(0, 0, 0, 0.7))'
                     }}

@@ -45,3 +45,68 @@ html, body {
   66% { opacity: 0.20; }
   85% { opacity: 0.10; }
 }
+
+/* ==========================================================================
+   STUDIO EDITORIAL THEME OVERRIDES (Inspired by signal-a.studio)
+   ========================================================================== */
+
+.theme-editorial {
+  background-color: #09090b !important;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+  background-position: center center !important;
+}
+
+/* Hide glowing ambient overlays */
+.theme-editorial [class*="animate-ambient-"] {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+/* Force sharp geometric corners */
+.theme-editorial *,
+.theme-editorial *::before,
+.theme-editorial *::after {
+  border-radius: 0px !important;
+}
+
+/* Make grid lines cleaner and more precise */
+.theme-editorial .border,
+.theme-editorial [class*="border-"] {
+  border-color: #1f1f2e !important;
+}
+
+/* Technical blueprint container aesthetics */
+.theme-editorial [key="landing"],
+.theme-editorial [key="workspace-active"],
+.theme-editorial [key="workspace-review"] {
+  background-color: #060608 !important;
+  border: 1px solid #27273a !important;
+  box-shadow: 0 40px 100px -30px rgba(0, 0, 0, 0.95) !important;
+}
+
+/* Sidebar and panel separations */
+.theme-editorial aside {
+  background-color: #09090c !important;
+  border-color: #27273a !important;
+}
+
+/* Scrollbar customization for technical look */
+.theme-editorial ::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.theme-editorial ::-webkit-scrollbar-track {
+  background: #060608;
+}
+
+.theme-editorial ::-webkit-scrollbar-thumb {
+  background: #27273a;
+}
+
+.theme-editorial ::-webkit-scrollbar-thumb:hover {
+  background: #3f3f5a;
+}
