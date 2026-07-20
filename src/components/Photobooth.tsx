@@ -816,7 +816,7 @@ export default function Photobooth() {
                       whileInView={{ opacity: 1 }}
                       viewport={{ once: true }}
                       transition={{
-                        delay: 0.3 + index * 0.03,
+                        delay: 0.3 + index * 0.06,
                         duration: 0.01
                       }}
                     >
@@ -839,7 +839,7 @@ export default function Photobooth() {
                       whileInView={{ pathLength: 1 }}
                       viewport={{ once: true }}
                       transition={{
-                        delay: 1.35,
+                        delay: 2.2,
                         duration: 0.7,
                         ease: "easeInOut"
                       }}
