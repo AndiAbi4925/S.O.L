@@ -771,8 +771,7 @@ export default function Photobooth() {
               </button>
 
               <div className="mb-8 hidden md:block">
-                <h1 className="font-serif text-3xl italic tracking-tight text-white block">S.O.L</h1>
-                <p className="text-[9px] uppercase tracking-[0.3em] text-[#666] mt-1">Snap of Love • Booth</p>
+                <img src="/logo.png" alt="S.O.L Logo" className="h-9 w-auto object-contain" />
               </div>
 
               <div className="space-y-6 flex-grow">
@@ -1038,8 +1037,7 @@ export default function Photobooth() {
             {/* Sidebar controls for POST-PROCESSING */}
             <aside className="w-full md:w-80 bg-[#0f0f0f] md:border-r border-[#2a2a2a] p-6 md:p-8 flex flex-col shrink-0 md:overflow-y-auto">
               <div className="mb-6">
-                <h1 className="font-serif text-3xl italic tracking-tight text-white mb-1">S.O.L</h1>
-                <p className="text-[9px] uppercase tracking-[0.16em] text-[#888]">SNAP OF LOVE STUDIO</p>
+                <img src="/logo.png" alt="S.O.L Logo" className="h-9 w-auto object-contain" />
               </div>
 
               <div className="space-y-6 flex-grow">
