@@ -305,3 +305,84 @@ export function stopLofiBgm() {
   }, 700);
 }
 
+/**
+ * Play a retro booting/loading sound sequence (capacitor charge hum + warm synth sweep)
+ */
+export function playBootSound() {
+  try {
+    const ctx = getAudioContext();
+    const now = ctx.currentTime;
+    
+    // 1. Low power-up hum (110Hz triangle oscillator)
+    const humOsc = ctx.createOscillator();
+    const humGain = ctx.createGain();
+    
+    humOsc.type = 'triangle';
+    humOsc.frequency.setValueAtTime(110, now);
+    humOsc.frequency.linearRampToValueAtTime(220, now + 3.0); // pitch ramps up slightly
+    
+    // Pass hum through lowpass filter to sound muffled and warm
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(150, now);
+    filter.frequency.exponentialRampToValueAtTime(800, now + 3.0);
+    
+    humGain.gain.setValueAtTime(0.001, now);
+    humGain.gain.linearRampToValueAtTime(0.08, now + 1.2); // swell in
+    humGain.gain.setValueAtTime(0.08, now + 3.0);
+    humGain.gain.exponentialRampToValueAtTime(0.001, now + 3.4); // fade out at slide
+    
+    humOsc.connect(filter);
+    filter.connect(humGain);
+    humGain.connect(ctx.destination);
+    
+    // 2. High frequency capacitor charging sweep (vintage flash charge)
+    const chargeOsc = ctx.createOscillator();
+    const chargeGain = ctx.createGain();
+    
+    chargeOsc.type = 'sine';
+    chargeOsc.frequency.setValueAtTime(400, now + 0.5);
+    chargeOsc.frequency.exponentialRampToValueAtTime(4000, now + 3.0); // rising sweep
+    
+    chargeGain.gain.setValueAtTime(0.001, now + 0.5);
+    chargeGain.gain.exponentialRampToValueAtTime(0.015, now + 2.0); // very soft high-pitch whistle
+    chargeGain.gain.setValueAtTime(0.015, now + 3.0);
+    chargeGain.gain.exponentialRampToValueAtTime(0.001, now + 3.2);
+    
+    chargeOsc.connect(chargeGain);
+    chargeGain.connect(ctx.destination);
+    
+    // 3. Final shutter click and developed chime when overlay slides up
+    const finalDelay = 3.3; // matches the slide up overlay timing in Preloader.tsx
+    
+    setTimeout(() => {
+      // Play a soft shutter click
+      playShutter();
+      
+      // developed chime chord (Cmajor7 C4 E4 G4 B4)
+      const chimeGain = ctx.createGain();
+      chimeGain.gain.setValueAtTime(0.001, ctx.currentTime);
+      chimeGain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.1);
+      chimeGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+      chimeGain.connect(ctx.destination);
+      
+      [261.63, 329.63, 392.00, 493.88].forEach((freq) => {
+        const chimeOsc = ctx.createOscillator();
+        chimeOsc.type = 'sine';
+        chimeOsc.frequency.value = freq;
+        chimeOsc.connect(chimeGain);
+        chimeOsc.start();
+        chimeOsc.stop(ctx.currentTime + 1.5);
+      });
+    }, finalDelay * 1000);
+    
+    humOsc.start(now);
+    humOsc.stop(now + 3.5);
+    
+    chargeOsc.start(now + 0.5);
+    chargeOsc.stop(now + 3.3);
+  } catch (e) {
+    console.warn('Audio play failed', e);
+  }
+}
+

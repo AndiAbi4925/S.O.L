@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { Heart } from 'lucide-react';
+import { playBootSound } from '../lib/audioUtils';
 
 interface PreloaderProps {
   onComplete: () => void;
@@ -15,6 +16,9 @@ export default function Preloader({ onComplete }: PreloaderProps) {
 
   useEffect(() => {
     if (!overlayRef.current || !cardRef.current || !photoRef.current || !glowRef.current) return;
+
+    // Trigger boot/loading sound sequence
+    playBootSound();
 
     // Set initial values
     gsap.set(cardRef.current, {
