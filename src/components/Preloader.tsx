@@ -113,7 +113,12 @@ export default function Preloader({ onComplete }: PreloaderProps) {
         className="fixed inset-0 bg-[#080808] z-[99999] flex flex-col items-center justify-center overflow-hidden select-none pointer-events-auto cursor-pointer"
       >
         {/* Dim red light glow (breathing ambient background bulb) */}
-        <div className="absolute w-[450px] h-[450px] rounded-full bg-radial from-red-900/30 via-red-950/5 to-transparent blur-[120px] pointer-events-none z-0" />
+        <div
+          className="absolute w-[800px] md:w-[1100px] h-[800px] md:h-[1100px] rounded-full blur-[160px] md:blur-[200px] pointer-events-none z-0"
+          style={{
+            background: 'radial-gradient(circle at center, rgba(153, 27, 27, 0.22) 0%, rgba(69, 10, 10, 0.07) 45%, rgba(8, 8, 8, 0) 75%)'
+          }}
+        />
 
         <div className="z-10 flex flex-col items-center gap-4 text-center max-w-xs px-6">
           <Heart className="w-10 h-10 text-[#8e1616] fill-current animate-pulse" />
@@ -137,7 +142,10 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       {/* Dim red light glow (breathing ambient background bulb) */}
       <div
         ref={glowRef}
-        className="absolute w-[450px] h-[450px] rounded-full bg-radial from-red-900/40 via-red-950/10 to-transparent blur-[100px] pointer-events-none z-0"
+        className="absolute w-[800px] md:w-[1100px] h-[800px] md:h-[1100px] rounded-full blur-[160px] md:blur-[200px] pointer-events-none z-0"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(153, 27, 27, 0.28) 0%, rgba(69, 10, 10, 0.09) 45%, rgba(8, 8, 8, 0) 75%)'
+        }}
       />
 
       {/* Polaroid card container */}
