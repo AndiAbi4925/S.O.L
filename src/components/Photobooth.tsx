@@ -1635,7 +1635,7 @@ export default function Photobooth() {
               rotate: isHoveringClickable ? 90 : 0,
             }}
             transition={{ type: 'spring', stiffness: 350, damping: 20 }}
-            style={{ originX: '16px', originY: '16px' }}
+            style={{ originX: 0.5, originY: 0.5, transformOrigin: 'center' }}
           >
             {/* Top-Left Corner */}
             <path d="M 6 12 V 6 H 12" stroke={isHoveringClickable ? "#8e1616" : "#ffffff"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
