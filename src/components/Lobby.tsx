@@ -60,7 +60,7 @@ export default function Lobby({
   const handleCharHover = (e: React.MouseEvent<HTMLSpanElement>) => {
     const target = e.currentTarget;
     gsap.killTweensOf(target);
-    
+
     gsap.to(target, {
       y: -20,
       scale: 1.08,
@@ -112,8 +112,8 @@ export default function Lobby({
       {/* Top Grid Menu Bar */}
       <div className={cn(
         "w-full grid grid-cols-2 md:grid-cols-5 border bg-[#09090b]/80 backdrop-blur-md md:sticky md:top-0 z-40 transition-all duration-300",
-        isScrolled 
-          ? "border-[#8e1616]/30 bg-[#09090b]/95 shadow-[0_10px_30px_rgba(0,0,0,0.85)]" 
+        isScrolled
+          ? "border-[#8e1616]/30 bg-[#09090b]/95 shadow-[0_10px_30px_rgba(0,0,0,0.85)]"
           : "border-stone-900 bg-[#09090b]/20"
       )}>
         {/* Interactive Logo Home Column */}
@@ -184,7 +184,7 @@ export default function Lobby({
           [ SCAN_HERO: PASS_OK ]
         </div>
 
-        <div 
+        <div
           ref={heroLogoGroupRef}
           className="flex gap-2 my-4 select-none"
         >
@@ -259,7 +259,7 @@ export default function Lobby({
               />
             </svg>
           </span>{" "}
-          — translating quiet fragments of love, time, and presence into soft paper relics.
+          translating quiet fragments of love, time, and presence into soft paper relics.
         </h2>
       </motion.div>
 
