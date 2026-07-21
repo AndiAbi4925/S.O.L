@@ -65,7 +65,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       opacity: 0.9,
       filter: 'blur(0px) contrast(1) brightness(1)',
       scale: 1,
-      duration: 3.2,
+      duration: 2.2,
       ease: 'power1.in',
     }, 1.0);
 
@@ -84,7 +84,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
     // 4. Slide up screen transition
     tl.to(overlayRef.current, {
       yPercent: -100,
-      duration: 0.95,
+      duration: 1.20,
       ease: 'power2.inOut',
     }, 4.8);
 
@@ -166,7 +166,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
 
       {/* Floating chemical code log */}
       <div className="absolute bottom-6 text-[8px] font-mono text-red-900/40 tracking-[0.3em] font-bold z-10">
-        [ BATH_PROCESS: TANK_01 // ACTIVE_DEVELOPER ]
+        [ LOGIN_PROCESS: TANK_01 // ENTERING LOBBY ]
       </div>
     </div>
   );
