@@ -112,7 +112,7 @@ export default function Lobby({
           }}
           className="px-6 py-4 border-r border-stone-900 text-stone-400 hover:text-white transition-colors text-[10px] uppercase font-mono tracking-widest font-bold flex items-center bg-transparent border-0 cursor-pointer text-left"
         >
-          <span className="magnetic-inner">Specimens</span>
+          <span className="magnetic-inner">Photostrips</span>
         </button>
         <button
           ref={capabilitiesBtnRef}
@@ -248,7 +248,7 @@ export default function Lobby({
         className="w-full border-x border-stone-900 scroll-mt-20"
       >
         <div className="w-full grid grid-cols-2 md:grid-cols-4 border-b border-stone-900 bg-[#0c0c0e]/30 px-6 py-4">
-          <span className="text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold">SPECIMEN PREVIEW</span>
+          <span className="text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold">PHOTOSTRIPS PREVIEW</span>
           <span className="hidden md:inline text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold">FILE_ID</span>
           <span className="hidden md:inline text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold text-center">THEME_MATERIAL</span>
           <span className="text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold text-right">LAYOUT_RATIO</span>
@@ -329,7 +329,7 @@ export default function Lobby({
         className="w-full border-x border-stone-900 scroll-mt-20"
       >
         <div className="w-full border-b border-stone-900 bg-[#0c0c0e]/30 px-6 py-4">
-          <span className="text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold">STUDIO ARCHIVE SPECIFICATION</span>
+          <span className="text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold">S.O.L STUDIO SPECIFICATION</span>
         </div>
         {[
           { label: "Various High-Fidelity Presets", spec: "6 Custom Photostrips theme (Cherry, sepia, obsidian, etc.)" },
@@ -354,8 +354,8 @@ export default function Lobby({
         className="w-full border-x border-b border-stone-900 py-16 md:py-24 px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-8 bg-[#09090b]/10 scroll-mt-20"
       >
         <div className="space-y-4">
-          <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#8e1616] font-bold block">ABOUT THE DARKROOM</span>
-          <h3 className="text-xl font-serif text-white font-normal italic leading-tight pb-2">Tangible artifacts of affection in a code-driven screen.</h3>
+          <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#8e1616] font-bold block">ABOUT THE STUDIO</span>
+          <h3 className="text-xl font-serif text-white font-normal italic leading-tight pb-2">Capture, Share, Collect, and Embrace the moment shared with Snap Of Love.</h3>
           <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 items-start">
             <a
               ref={instagramBtnRef}
@@ -369,7 +369,7 @@ export default function Lobby({
                 <span>@snapoflove.id</span>
               </div>
             </a>
-            
+
             <a
               href="https://forms.gle/yXm5QGAvoiDacTVK9"
               target="_blank"
