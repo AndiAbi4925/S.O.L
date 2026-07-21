@@ -134,13 +134,13 @@ html, body {
     opacity: 0;
   }
   12% {
-    opacity: 0.18; /* soft background-only opacity */
+    opacity: 0.35; /* clearly visible background opacity */
   }
   88% {
-    opacity: 0.18;
+    opacity: 0.35;
   }
   100% {
-    transform: translateY(-110vh) translateX(var(--drift, 30px));
+    transform: translateY(-115vh) translateX(var(--drift, 30px));
     opacity: 0;
   }
 }

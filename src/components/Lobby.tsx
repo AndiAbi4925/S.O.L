@@ -85,7 +85,7 @@ export default function Lobby({
       className="w-full flex flex-col relative overflow-hidden bg-[#09090b]"
     >
       {/* Ambient Film Dust Background Overlay */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      <div className="absolute top-0 inset-x-0 h-screen overflow-hidden pointer-events-none z-0">
         {[...Array(20)].map((_, i) => {
           const size = Math.random() * 3 + 1.2; // 1.2px to 4.2px particles
           const left = Math.random() * 100;
