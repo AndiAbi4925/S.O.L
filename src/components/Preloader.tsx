@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { Heart } from 'lucide-react';
 import { playBootSound } from '../lib/audioUtils';
@@ -8,17 +8,17 @@ interface PreloaderProps {
 }
 
 export default function Preloader({ onComplete }: PreloaderProps) {
+  const [hasInteracted, setHasInteracted] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const photoRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const stampLabelRef = useRef<HTMLSpanElement>(null);
 
+  // Trigger animation timeline ONLY after user gesture unlocks AudioContext
   useEffect(() => {
+    if (!hasInteracted) return;
     if (!overlayRef.current || !cardRef.current || !photoRef.current || !glowRef.current) return;
-
-    // Trigger boot/loading sound sequence
-    playBootSound();
 
     // Set initial values
     gsap.set(cardRef.current, {
@@ -33,21 +33,20 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       scale: 0.85,
     });
     gsap.set(glowRef.current, {
-      opacity: 0,
-      scale: 0.7,
+      opacity: 0.35,
+      scale: 1.15,
     });
 
     const tl = gsap.timeline({
       onComplete: () => {
-        // Trigger parent callback to unmount preloader
         onComplete();
       }
     });
 
-    // 1. Initial fade-in of ambient red light glow and Polaroid card frame
+    // 1. Fade-in of ambient red light glow and Polaroid card frame
     tl.to(glowRef.current, {
-      opacity: 0.35,
-      scale: 1.15,
+      opacity: 0.45,
+      scale: 1.25,
       duration: 1.6,
       ease: 'sine.inOut',
     });
@@ -89,7 +88,13 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       ease: 'power2.inOut',
     }, 4.8);
 
-  }, [onComplete]);
+  }, [hasInteracted, onComplete]);
+
+  const handleStart = () => {
+    // Play boot sound (capacitor charge + warm hum) - works instantly inside click gesture
+    playBootSound();
+    setHasInteracted(true);
+  };
 
   // Format current date in yy.MM.dd style
   const getFormattedDate = () => {
@@ -100,6 +105,30 @@ export default function Preloader({ onComplete }: PreloaderProps) {
     return `${yy}.${mm}.${dd}`;
   };
 
+  // 1. Initial Interactive Entrance screen to unlock Web Audio API Context
+  if (!hasInteracted) {
+    return (
+      <div
+        onClick={handleStart}
+        className="fixed inset-0 bg-[#080808] z-[99999] flex flex-col items-center justify-center overflow-hidden select-none pointer-events-auto cursor-pointer"
+      >
+        {/* Dim red light glow (breathing ambient background bulb) */}
+        <div className="absolute w-[450px] h-[450px] rounded-full bg-radial from-red-900/30 via-red-950/5 to-transparent blur-[120px] pointer-events-none z-0" />
+        
+        <div className="z-10 flex flex-col items-center gap-4 text-center max-w-xs px-6">
+          <Heart className="w-10 h-10 text-[#8e1616] fill-current animate-pulse" />
+          <p className="font-mono text-[9px] uppercase tracking-[0.35em] text-stone-400 font-bold leading-relaxed">
+            [ Click / Tap to Initialize S.O.L ]
+          </p>
+          <span className="text-[7px] font-mono text-stone-600 tracking-[0.2em] mt-10">
+            S.O.L © 2026 // AUDIO_INITIALIZER
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Developed Polaroid Chemical Preloader
   return (
     <div
       ref={overlayRef}
