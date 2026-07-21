@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { db } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { playTick, startLofiBgm, stopLofiBgm } from '../lib/audioUtils';
-import { Download, Camera, Volume2, VolumeX, AlertTriangle, Disc } from 'lucide-react';
+import { playTick } from '../lib/audioUtils';
+import { Download, Camera, AlertTriangle, Disc } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface SharePageProps {
@@ -19,7 +19,6 @@ export default function SharePage({ id }: SharePageProps) {
   const [shareData, setShareData] = useState<ShareData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isBgmPlaying, setIsBgmPlaying] = useState<boolean>(false);
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -48,23 +47,7 @@ export default function SharePage({ id }: SharePageProps) {
     };
 
     fetchShareData();
-
-    // Cleanup audio on unmount
-    return () => {
-      stopLofiBgm();
-    };
   }, [id]);
-
-  const toggleBgm = () => {
-    playTick();
-    if (isBgmPlaying) {
-      stopLofiBgm();
-      setIsBgmPlaying(false);
-    } else {
-      startLofiBgm();
-      setIsBgmPlaying(true);
-    }
-  };
 
   const handleDownload = async () => {
     if (!shareData) return;
@@ -210,50 +193,6 @@ export default function SharePage({ id }: SharePageProps) {
               <Camera className="w-4 h-4" />
               Open Photobooth
             </button>
-          </div>
-
-          {/* BGM Tape Cassette deck widget */}
-          <div className="bg-[#111] border border-[#222] rounded-lg p-3.5 flex items-center justify-between gap-4 shadow-2xl relative overflow-hidden select-none">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-amber-500 to-indigo-500 opacity-20" />
-            
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center relative w-11 h-7 bg-stone-900 border border-stone-800 rounded-xs overflow-hidden">
-                <div className="flex gap-2">
-                  <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
-                    <div className="w-1 h-1 bg-stone-500 rounded-full" />
-                  </div>
-                  <div className={cn("w-3 h-3 border border-[#333] rounded-full bg-[#1c1c1c] flex items-center justify-center", isBgmPlaying && "animate-spin")} style={{ animationDuration: '4s' }}>
-                    <div className="w-1 h-1 bg-stone-500 rounded-full" />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex flex-col text-left">
-                <p className="text-[9px] uppercase font-mono tracking-wider text-stone-500">Lo-Fi BGM</p>
-                <p className="text-[10px] uppercase font-bold tracking-widest text-[#eaeaea] font-mono">SOL TAPE 01</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center pr-1">
-                <span className="relative flex h-2 w-2">
-                  <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-red-600", !isBgmPlaying && "hidden")} />
-                  <span className={cn("relative inline-flex rounded-full h-2 w-2", isBgmPlaying ? "bg-red-600" : "bg-stone-800")} />
-                </span>
-              </div>
-
-              <button
-                onClick={toggleBgm}
-                className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center border transition-all cursor-pointer",
-                  isBgmPlaying
-                    ? "bg-white text-black border-white hover:bg-stone-200"
-                    : "bg-transparent text-stone-400 border-stone-800 hover:text-white hover:border-[#444] hover:bg-white/5"
-                )}
-              >
-                {isBgmPlaying ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-              </button>
-            </div>
           </div>
 
         </div>
