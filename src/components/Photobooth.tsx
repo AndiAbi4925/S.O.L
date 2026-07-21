@@ -1612,7 +1612,7 @@ export default function Photobooth() {
         )}
       </AnimatePresence>
 
-      {/* Retro Pixel-Art Crosshair Cursor (Only rendered on desktop devices) */}
+      {/* Camera Viewfinder Autofocus Cursor (Only rendered on desktop devices) */}
       <motion.div
         style={{
           position: 'fixed',
@@ -1622,24 +1622,30 @@ export default function Photobooth() {
           zIndex: 99999,
           transform: 'translate(-50%, -50%)',
         }}
-        animate={{
-          scale: isHoveringClickable ? 1.35 : 1,
-          rotate: isHoveringClickable ? 45 : 0,
-        }}
-        transition={{ type: 'spring', stiffness: 450, damping: 24 }}
         className="hidden md:flex items-center justify-center pointer-events-none"
       >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Top segment */}
-          <rect x="9" y="1" width="2" height="6" fill={isHoveringClickable ? "#8e1616" : "#ffffff"} />
-          {/* Bottom segment */}
-          <rect x="9" y="13" width="2" height="6" fill={isHoveringClickable ? "#8e1616" : "#ffffff"} />
-          {/* Left segment */}
-          <rect x="1" y="9" width="6" height="2" fill={isHoveringClickable ? "#8e1616" : "#ffffff"} />
-          {/* Right segment */}
-          <rect x="13" y="9" width="6" height="2" fill={isHoveringClickable ? "#8e1616" : "#ffffff"} />
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           {/* Center pinpoint */}
-          <rect x="9" y="9" width="2" height="2" fill={isHoveringClickable ? "#8e1616" : "#ffffff"} />
+          <circle cx="16" cy="16" r="2" fill={isHoveringClickable ? "#8e1616" : "#ffffff"} />
+          
+          {/* Viewfinder brackets layer (contracts and rotates on active hover) */}
+          <motion.g
+            animate={{
+              scale: isHoveringClickable ? 0.75 : 1,
+              rotate: isHoveringClickable ? 90 : 0,
+            }}
+            transition={{ type: 'spring', stiffness: 350, damping: 20 }}
+            style={{ originX: '16px', originY: '16px' }}
+          >
+            {/* Top-Left Corner */}
+            <path d="M 6 12 V 6 H 12" stroke={isHoveringClickable ? "#8e1616" : "#ffffff"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Top-Right Corner */}
+            <path d="M 26 12 V 6 H 20" stroke={isHoveringClickable ? "#8e1616" : "#ffffff"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Bottom-Left Corner */}
+            <path d="M 6 20 V 26 H 12" stroke={isHoveringClickable ? "#8e1616" : "#ffffff"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Bottom-Right Corner */}
+            <path d="M 26 20 V 26 H 20" stroke={isHoveringClickable ? "#8e1616" : "#ffffff"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </motion.g>
         </svg>
       </motion.div>
 
