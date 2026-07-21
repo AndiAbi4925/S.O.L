@@ -86,7 +86,7 @@ export default function Lobby({
     >
       {/* Top Grid Menu Bar */}
       <div className={cn(
-        "w-full grid grid-cols-2 md:grid-cols-5 border bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40 transition-all duration-300",
+        "w-full grid grid-cols-2 md:grid-cols-5 border bg-[#09090b]/80 backdrop-blur-md md:sticky md:top-0 z-40 transition-all duration-300",
         isScrolled 
           ? "border-[#8e1616]/30 bg-[#09090b]/95 shadow-[0_10px_30px_rgba(0,0,0,0.85)]" 
           : "border-stone-900 bg-[#09090b]/20"
@@ -152,10 +152,10 @@ export default function Lobby({
 
       {/* CRT glitch LOGO Hero */}
       <div className="w-full flex flex-col items-center justify-center py-20 border-x border-b border-stone-900 bg-[#09090c]/40 relative min-h-[calc(100vh-140px)]">
-        <div className="absolute top-4 left-6 text-[8px] font-mono text-stone-600 tracking-widest font-bold">
+        <div className="absolute top-4 left-6 text-[8px] font-mono text-stone-600 tracking-widest font-bold hidden md:block">
           [ ENGINE_CODE: SOL_V2 // CLIENT_RENDER ]
         </div>
-        <div className="absolute top-4 right-6 text-[8px] font-mono text-stone-600 tracking-widest font-bold">
+        <div className="absolute top-4 right-6 text-[8px] font-mono text-stone-600 tracking-widest font-bold hidden md:block">
           [ SCAN_HERO: PASS_OK ]
         </div>
 
@@ -188,9 +188,9 @@ export default function Lobby({
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="w-full py-20 md:py-28 border-x border-b border-stone-900 bg-[#08080a]/20 px-6 md:px-12 flex justify-center"
       >
-        <h2 className="text-3xl md:text-5xl font-serif text-stone-200 tracking-tight leading-tight max-w-5xl text-center font-normal">
+        <h2 className="text-xl sm:text-3xl md:text-5xl font-serif text-stone-200 tracking-tight leading-relaxed max-w-5xl text-center font-normal px-4">
           S.O.L preserves the{" "}
-          <span className="relative inline-block italic text-white pb-1.5 px-0.5">
+          <span className="relative inline-block italic text-white pb-1.5 px-0.5 whitespace-nowrap block sm:inline-block">
             {"fading warmth of passing hours".split("").map((char, index) => (
               <motion.span
                 key={index}
