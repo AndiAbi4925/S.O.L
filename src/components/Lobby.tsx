@@ -153,7 +153,7 @@ export default function Lobby({
       {/* CRT glitch LOGO Hero */}
       <div className="w-full flex flex-col items-center justify-center py-20 border-x border-b border-stone-900 bg-[#09090c]/40 relative min-h-[calc(100vh-140px)]">
         <div className="absolute top-4 left-6 text-[8px] font-mono text-stone-600 tracking-widest font-bold hidden md:block">
-          [ ENGINE_CODE: SOL_V2 // CLIENT_RENDER ]
+          [ ENGINE_CODE: SOL_V2 // WELCOME ]
         </div>
         <div className="absolute top-4 right-6 text-[8px] font-mono text-stone-600 tracking-widest font-bold hidden md:block">
           [ SCAN_HERO: PASS_OK ]
@@ -372,10 +372,10 @@ export default function Lobby({
         </div>
         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 text-stone-400 text-xs leading-relaxed font-normal">
           <p>
-            S.O.L (Snap of Love) is an experimental digital photobooth designed to anchor fleeting snapshots of memory, intimacy, and local poetry. We hold the premise that photos are not mere digital data, but visual coordinates representing genuine affection.
+            S.O.L (Snap of Love) is a digital photobooth designed to capture snapshots of memory, moments, and meaningful moments with your love ones. We hold the premise that photos are not mere digital data, but visual coordinates representing genuine affection.
           </p>
           <p>
-            By merging nostalgic analog paper textures, adjustable film grain, and clean modern styling grid structures, S.O.L creates a visual bridge to render snapshots that belong in a museum or a memory box. Entry is entirely client-side; your privacy remains yours.
+            By merging nostalgic analog paper textures, adjustable film grain, and clean modern styling grid structures, S.O.L creates a visual bridge to render snapshots that belong in a museum or a memory box. May your story be meaningful with S.O.L.
           </p>
         </div>
       </motion.section>
@@ -398,7 +398,7 @@ export default function Lobby({
         >
           <div className="magnetic-inner flex items-center justify-center gap-3">
             <Camera className="w-4 h-4" />
-            ENTER PHOTOSTUDIO
+            ENTER STUDIO
           </div>
         </button>
       </motion.div>
@@ -426,7 +426,7 @@ export default function Lobby({
           </motion.div>
           <motion.div
             animate={{ x: [0, -1000] }}
-            transition={{ ease: "linear", duration: 25, repeat: Infinity }}
+            transition={{ ease: "linear", duration: 40, repeat: Infinity }}
             className="flex gap-16 text-5xl md:text-7xl font-serif italic text-white tracking-tighter uppercase font-bold pr-16"
           >
             <span>S.O.L</span>
