@@ -75,7 +75,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       duration: 0.25,
       onComplete: () => {
         if (stampLabelRef.current) {
-          stampLabelRef.current.innerText = 'DEVELOPED';
+          stampLabelRef.current.innerText = 'BOOTED';
           gsap.to(stampLabelRef.current, { opacity: 1, duration: 0.25 });
         }
       }
@@ -160,7 +160,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
         {/* Polaroid caption signature stamp */}
         <div className="flex justify-between items-center mt-3 font-mono text-[9px] text-[#8e1616] font-bold">
           <span>{getFormattedDate()}</span>
-          <span ref={stampLabelRef} className="tracking-widest">DEVELOPING</span>
+          <span ref={stampLabelRef} className="tracking-widest">BOOTING</span>
         </div>
       </div>
 
