@@ -42,6 +42,7 @@ import { createGifExporter } from '../lib/exportUtils';
 import { playTick, playShutter, playDing, startLofiBgm, stopLofiBgm } from '../lib/audioUtils';
 import { useMagnetic } from '../hooks/useMagnetic';
 import Lobby from './Lobby';
+import Preloader from './Preloader';
 
 type ScreenState = 'landing' | 'active' | 'review';
 type CapturingState = 'idle' | 'countdown' | 'capturing' | 'completed';
@@ -128,6 +129,7 @@ export default function Photobooth() {
 
   // App Navigation Flow
   const [screen, setScreen] = useState<ScreenState>('landing');
+  const [showPreloader, setShowPreloader] = useState<boolean>(true);
 
   // Scroll container reference for Lobby smooth scroll triggers
   const lobbyScrollRef = useRef<HTMLDivElement | null>(null);
@@ -707,6 +709,9 @@ export default function Photobooth() {
           : "h-[100dvh] overflow-y-auto md:overflow-hidden overflow-x-hidden flex flex-col items-center justify-center md:p-4"
       )}
     >
+      {showPreloader && (
+        <Preloader onComplete={() => setShowPreloader(false)} />
+      )}
 
       {/* Background Ambience Light Glows (Corner Edges) - Only rendered in studio screen views */}
       {screen !== 'landing' && (
