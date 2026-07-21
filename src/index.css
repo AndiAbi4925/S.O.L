@@ -121,26 +121,3 @@ html, body {
     cursor: none !important;
   }
 }
-
-/* Ambient Film Dust Particles Animation */
-.animate-float-particle {
-  animation: float-particle linear infinite;
-  will-change: transform, opacity;
-}
-
-@keyframes float-particle {
-  0% {
-    transform: translateY(0) translateX(0);
-    opacity: 0;
-  }
-  12% {
-    opacity: 0.35; /* clearly visible background opacity */
-  }
-  88% {
-    opacity: 0.35;
-  }
-  100% {
-    transform: translateY(-115vh) translateX(var(--drift, 30px));
-    opacity: 0;
-  }
-}

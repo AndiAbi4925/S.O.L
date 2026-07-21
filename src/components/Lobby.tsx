@@ -82,33 +82,8 @@ export default function Lobby({
   return (
     <div
       onMouseMove={handleMouseMove}
-      className="w-full flex flex-col relative overflow-hidden bg-[#09090b]"
+      className="w-full flex flex-col"
     >
-      {/* Ambient Film Dust Background Overlay */}
-      <div className="absolute top-0 inset-x-0 h-screen overflow-hidden pointer-events-none z-0">
-        {[...Array(20)].map((_, i) => {
-          const size = Math.random() * 3 + 1.2; // 1.2px to 4.2px particles
-          const left = Math.random() * 100;
-          const delay = Math.random() * 15; // wide delay spread
-          const duration = Math.random() * 20 + 20; // 20s to 40s travel time
-          const drift = Math.random() * 60 - 30; // -30px to 30px lateral drift
-          return (
-            <div
-              key={i}
-              className="absolute bg-white/10 rounded-full animate-float-particle"
-              style={{
-                width: `${size}px`,
-                height: `${size}px`,
-                left: `${left}%`,
-                bottom: `-20px`,
-                animationDelay: `${delay}s`,
-                animationDuration: `${duration}s`,
-                '--drift': `${drift}px`,
-              } as React.CSSProperties}
-            />
-          );
-        })}
-      </div>
       {/* Top Grid Menu Bar */}
       <div className={cn(
         "w-full grid grid-cols-2 md:grid-cols-5 border bg-[#09090b]/80 backdrop-blur-md md:sticky md:top-0 z-40 transition-all duration-300",
