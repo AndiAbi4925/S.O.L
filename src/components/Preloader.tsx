@@ -114,14 +114,14 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       >
         {/* Dim red light glow (breathing ambient background bulb) */}
         <div className="absolute w-[450px] h-[450px] rounded-full bg-radial from-red-900/30 via-red-950/5 to-transparent blur-[120px] pointer-events-none z-0" />
-        
+
         <div className="z-10 flex flex-col items-center gap-4 text-center max-w-xs px-6">
           <Heart className="w-10 h-10 text-[#8e1616] fill-current animate-pulse" />
           <p className="font-mono text-[9px] uppercase tracking-[0.35em] text-stone-400 font-bold leading-relaxed">
-            [ Click / Tap to Initialize S.O.L ]
+            [ Click / Tap to launch S.O.L ]
           </p>
           <span className="text-[7px] font-mono text-stone-600 tracking-[0.2em] mt-10">
-            S.O.L © 2026 // AUDIO_INITIALIZER
+            S.O.L © 2026 // ANDI ABI
           </span>
         </div>
       </div>
