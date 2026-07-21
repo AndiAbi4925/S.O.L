@@ -44,7 +44,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
     tl.to(glowRef.current, {
       opacity: 0.35,
       scale: 1.15,
-      duration: 1.2,
+      duration: 1.6,
       ease: 'sine.inOut',
     });
 
@@ -53,18 +53,18 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       y: 0,
       scale: 1,
       rotate: 1.5,
-      duration: 1.0,
+      duration: 1.2,
       ease: 'power2.out',
-    }, 0.2);
+    }, 0.3);
 
     // 2. Slow photo development stage (Blur dissolves, contrast balances, elements sharpen)
     tl.to(photoRef.current, {
       opacity: 0.9,
       filter: 'blur(0px) contrast(1) brightness(1)',
       scale: 1,
-      duration: 2.2,
+      duration: 3.2,
       ease: 'power1.in',
-    }, 0.7);
+    }, 1.0);
 
     // 3. Text label toggle when fully developed
     tl.to(stampLabelRef.current, {
@@ -76,14 +76,14 @@ export default function Preloader({ onComplete }: PreloaderProps) {
           gsap.to(stampLabelRef.current, { opacity: 1, duration: 0.25 });
         }
       }
-    }, 2.4);
+    }, 3.6);
 
     // 4. Slide up screen transition
     tl.to(overlayRef.current, {
       yPercent: -100,
-      duration: 0.85,
+      duration: 0.95,
       ease: 'power2.inOut',
-    }, 3.3);
+    }, 4.8);
 
   }, [onComplete]);
 
