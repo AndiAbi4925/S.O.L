@@ -234,7 +234,7 @@ export default function Lobby({
               />
             </svg>
           </span>{" "}
-          translating quiet fragments of love, time, and presence into soft paper relics.
+          , translating quiet fragments of love, time, and presence into soft paper relics.
         </h2>
       </motion.div>
 
@@ -332,11 +332,10 @@ export default function Lobby({
           <span className="text-[10px] font-mono text-stone-500 uppercase tracking-widest font-bold">STUDIO ARCHIVE SPECIFICATION</span>
         </div>
         {[
-          { label: "High-Fidelity Presets", spec: "6 Custom Emulations (Cherry, sepia, obsidian, etc.)" },
-          { label: "Burst Exporter Frame Rate", spec: "GIF burst motion engine at 8 FPS compile" },
-          { label: "Cloud Save Synchronization", spec: "Compressed JPG payload downscales for 1MB limits" },
-          { label: "Local Lossless Encoding", spec: "True RGB client-side downloads without watermarks" },
-          { label: "Voluntary Creator Support", spec: "High-trust checkout bypass with ad overlay skip" },
+          { label: "Various High-Fidelity Presets", spec: "6 Custom Photostrips theme (Cherry, sepia, obsidian, etc.)" },
+          { label: "Burst GIF Animation", spec: "GIF burst motion engine at 8 FPS compile" },
+          { label: "Cloud Save Synchronization", spec: "Share your pics after taking them by scanning the QR" },
+          { label: "Local Lossless Encoding", spec: "True RGB downloads without watermarks" },
         ].map((cap, index) => (
           <div key={index} className="w-full flex justify-between items-center border-b border-stone-900 px-6 py-5">
             <span className="text-xs uppercase font-mono tracking-widest text-stone-400 font-bold">{cap.label}</span>
@@ -372,7 +371,7 @@ export default function Lobby({
         </div>
         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 text-stone-400 text-xs leading-relaxed font-normal">
           <p>
-            S.O.L (Snap of Love) is a digital photobooth designed to capture snapshots of memory, moments, and meaningful moments with your love ones. We hold the premise that photos are not mere digital data, but visual coordinates representing genuine affection.
+            <b>S.O.L (Snap of Love)</b>is a digital photobooth designed to capture snapshots of memory, moments, and meaningful moments with your love ones. We hold the premise that photos are not mere digital data, but visual coordinates representing genuine affection.
           </p>
           <p>
             By merging nostalgic analog paper textures, adjustable film grain, and clean modern styling grid structures, S.O.L creates a visual bridge to render snapshots that belong in a museum or a memory box. May your story be meaningful with S.O.L.
