@@ -195,6 +195,22 @@ export default function SharePage({ id }: SharePageProps) {
             </button>
           </div>
 
+          {/* Feedback/Survey Invitation banner */}
+          <div className="border border-stone-900 bg-[#0c0c0f]/80 p-3.5 flex flex-col gap-2 text-left relative overflow-hidden select-none">
+            <p className="text-[9px] uppercase font-mono tracking-widest text-[#8e1616] font-bold">[ Feedback ]</p>
+            <p className="text-[10px] text-stone-400 font-mono leading-normal">
+              How was your photobooth experience? Take 1 minute to fill out our satisfaction form.
+            </p>
+            <a
+              href="https://forms.gle/yXm5QGAvoiDacTVK9"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[9px] uppercase font-mono tracking-widest text-white hover:text-red-450 font-bold flex items-center gap-1 mt-1 cursor-pointer transition-colors"
+            >
+              <span>Fill Survey Form →</span>
+            </a>
+          </div>
+
         </div>
 
       </div>

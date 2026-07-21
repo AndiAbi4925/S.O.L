@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Instagram } from 'lucide-react';
+import { Camera, Instagram, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import gsap from 'gsap';
 import { playTick } from '../lib/audioUtils';
@@ -356,18 +356,32 @@ export default function Lobby({
         <div className="space-y-4">
           <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#8e1616] font-bold block">ABOUT THE DARKROOM</span>
           <h3 className="text-xl font-serif text-white font-normal italic leading-tight pb-2">Tangible artifacts of affection in a code-driven screen.</h3>
-          <a
-            ref={instagramBtnRef}
-            href="https://www.instagram.com/snapoflove.id/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-[9px] font-mono uppercase tracking-[0.2em] text-stone-300 hover:text-white transition-colors border border-stone-850 hover:border-[#8e1616]/40 px-3.5 py-2 bg-[#0c0c0f]/80 cursor-pointer"
-          >
-            <div className="magnetic-inner flex items-center gap-2">
-              <Instagram className="w-3.5 h-3.5 text-stone-400 group-hover:text-white" />
-              <span>@snapoflove.id</span>
-            </div>
-          </a>
+          <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 items-start">
+            <a
+              ref={instagramBtnRef}
+              href="https://www.instagram.com/snapoflove.id/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-[9px] font-mono uppercase tracking-[0.2em] text-stone-300 hover:text-white transition-colors border border-stone-850 hover:border-[#8e1616]/40 px-3.5 py-2 bg-[#0c0c0f]/80 cursor-pointer"
+            >
+              <div className="magnetic-inner flex items-center gap-2">
+                <Instagram className="w-3.5 h-3.5 text-stone-400 group-hover:text-white" />
+                <span>@snapoflove.id</span>
+              </div>
+            </a>
+            
+            <a
+              href="https://forms.gle/yXm5QGAvoiDacTVK9"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-[9px] font-mono uppercase tracking-[0.2em] text-stone-300 hover:text-white transition-colors border border-stone-850 hover:border-[#8e1616]/40 px-3.5 py-2 bg-[#0c0c0f]/80 cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-3.5 h-3.5 text-stone-400" />
+                <span>Satisfaction Survey</span>
+              </div>
+            </a>
+          </div>
         </div>
         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 text-stone-400 text-xs leading-relaxed font-normal">
           <p>
