@@ -112,11 +112,11 @@ export default function Preloader({ onComplete }: PreloaderProps) {
         onClick={handleStart}
         className="fixed inset-0 bg-[#080808] z-[99999] flex flex-col items-center justify-center overflow-hidden select-none pointer-events-auto cursor-pointer"
       >
-        {/* Dim red light glow (breathing ambient background bulb) */}
+        {/* Dim red light glow (breathing ambient background bulb - Cross-browser identical) */}
         <div
-          className="absolute w-[800px] md:w-[1100px] h-[800px] md:h-[1100px] rounded-full blur-[160px] md:blur-[200px] pointer-events-none z-0"
+          className="absolute inset-0 pointer-events-none z-0"
           style={{
-            background: 'radial-gradient(circle at center, rgba(153, 27, 27, 0.22) 0%, rgba(69, 10, 10, 0.07) 45%, rgba(8, 8, 8, 0) 75%)'
+            background: 'radial-gradient(circle at center, rgba(153, 27, 27, 0.28) 0%, rgba(90, 12, 12, 0.12) 30%, rgba(40, 6, 6, 0.03) 60%, transparent 80%)'
           }}
         />
 
@@ -139,12 +139,12 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       ref={overlayRef}
       className="fixed inset-0 bg-[#080808] z-[99999] flex flex-col items-center justify-center overflow-hidden select-none pointer-events-auto"
     >
-      {/* Dim red light glow (breathing ambient background bulb) */}
+      {/* Dim red light glow (breathing ambient background bulb - Cross-browser identical) */}
       <div
         ref={glowRef}
-        className="absolute w-[800px] md:w-[1100px] h-[800px] md:h-[1100px] rounded-full blur-[160px] md:blur-[200px] pointer-events-none z-0"
+        className="absolute inset-0 pointer-events-none z-0"
         style={{
-          background: 'radial-gradient(circle at center, rgba(153, 27, 27, 0.28) 0%, rgba(69, 10, 10, 0.09) 45%, rgba(8, 8, 8, 0) 75%)'
+          background: 'radial-gradient(circle at center, rgba(153, 27, 27, 0.32) 0%, rgba(90, 12, 12, 0.15) 30%, rgba(40, 6, 6, 0.04) 60%, transparent 80%)'
         }}
       />
 
