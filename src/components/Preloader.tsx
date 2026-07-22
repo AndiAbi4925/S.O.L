@@ -120,12 +120,12 @@ export default function Preloader({ onComplete }: PreloaderProps) {
           }}
         />
 
-        <div className="z-10 flex flex-col items-center gap-4 text-center max-w-xs px-6">
+        <div className="z-10 flex flex-col items-center gap-4 text-center max-w-sm px-6">
           <Heart className="w-10 h-10 text-[#8e1616] fill-current animate-pulse" />
-          <p className="font-mono text-[9px] uppercase tracking-[0.35em] text-stone-400 font-bold leading-relaxed">
+          <p className="font-mono text-[9px] uppercase tracking-[0.35em] text-stone-400 font-bold leading-relaxed whitespace-nowrap">
             [ Click / Tap to launch S.O.L ]
           </p>
-          <span className="text-[7px] font-mono text-stone-600 tracking-[0.2em] mt-10">
+          <span className="text-[7px] font-mono text-stone-600 tracking-[0.2em] mt-10 whitespace-nowrap">
             S.O.L © 2026 // ANDI ABI
           </span>
         </div>
@@ -173,7 +173,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       </div>
 
       {/* Floating chemical code log */}
-      <div className="absolute bottom-6 text-[8px] font-mono text-red-900/40 tracking-[0.3em] font-bold z-10">
+      <div className="absolute bottom-6 text-[8px] font-mono text-red-900/40 tracking-[0.3em] font-bold z-10 whitespace-nowrap">
         [ LOGIN_PROCESS: TANK_01 // ENTERING LOBBY ]
       </div>
     </div>
