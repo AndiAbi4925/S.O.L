@@ -159,12 +159,25 @@ export default function Photobooth() {
   const [showAdOverlay, setShowAdOverlay] = useState<boolean>(false);
   const [pendingExportFormat, setPendingExportFormat] = useState<'jpg' | 'png' | 'gif' | null>(null);
 
+  // Desktop Fine Pointer (Mouse / Trackpad) Detection for Custom Cursor
+  const [isFinePointer, setIsFinePointer] = useState<boolean>(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(pointer: fine)');
+    setIsFinePointer(mq.matches);
+
+    const handler = (e: MediaQueryListEvent) => setIsFinePointer(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
   // Global Custom Cursor & Mouse position states
   const [globalMousePos, setGlobalMousePos] = useState({ x: -100, y: -100 });
   const [isHoveringClickable, setIsHoveringClickable] = useState<boolean>(false);
   const [isFlashing, setIsFlashing] = useState<boolean>(false);
 
   const handleGlobalMouseMove = (e: React.MouseEvent) => {
+    if (!isFinePointer) return;
     setGlobalMousePos({ x: e.clientX, y: e.clientY });
     
     // Check if hovering a button, link, click trigger or input
@@ -705,7 +718,8 @@ export default function Photobooth() {
       onMouseMove={handleGlobalMouseMove}
       onScroll={screen === 'landing' ? handleLobbyScroll : undefined}
       className={cn(
-        "w-screen bg-[#080808] text-[#e0e0e0] font-sans select-none relative transition-colors duration-500 custom-cursor-active",
+        "w-screen bg-[#080808] text-[#e0e0e0] font-sans select-none relative transition-colors duration-500",
+        isFinePointer && "custom-cursor-active",
         screen === 'landing'
           ? "h-screen overflow-y-auto overflow-x-hidden flex flex-col bg-[#09090b] bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px]"
           : "h-[100dvh] overflow-y-auto md:overflow-hidden overflow-x-hidden flex flex-col items-center justify-center md:p-4"
@@ -1614,42 +1628,44 @@ export default function Photobooth() {
         )}
       </AnimatePresence>
 
-      {/* Camera Viewfinder Autofocus Cursor (Only rendered on desktop devices) */}
-      <motion.div
-        style={{
-          position: 'fixed',
-          left: globalMousePos.x,
-          top: globalMousePos.y,
-          pointerEvents: 'none',
-          zIndex: 99999,
-          transform: 'translate(-50%, -50%)',
-        }}
-        className="hidden md:flex items-center justify-center pointer-events-none"
-      >
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Center pinpoint */}
-          <circle cx="16" cy="16" r="2" fill={isHoveringClickable ? "#8e1616" : "#ffffff"} />
-          
-          {/* Viewfinder brackets layer (contracts and rotates on active hover) */}
-          <motion.g
-            animate={{
-              scale: isHoveringClickable ? 0.75 : 1,
-              rotate: isHoveringClickable ? 90 : 0,
-            }}
-            transition={{ type: 'spring', stiffness: 350, damping: 20 }}
-            style={{ originX: 0.5, originY: 0.5, transformOrigin: 'center' }}
-          >
-            {/* Top-Left Corner */}
-            <path d="M 6 12 V 6 H 12" stroke={isHoveringClickable ? "#8e1616" : "#ffffff"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            {/* Top-Right Corner */}
-            <path d="M 26 12 V 6 H 20" stroke={isHoveringClickable ? "#8e1616" : "#ffffff"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            {/* Bottom-Left Corner */}
-            <path d="M 6 20 V 26 H 12" stroke={isHoveringClickable ? "#8e1616" : "#ffffff"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            {/* Bottom-Right Corner */}
-            <path d="M 26 20 V 26 H 20" stroke={isHoveringClickable ? "#8e1616" : "#ffffff"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </motion.g>
-        </svg>
-      </motion.div>
+      {/* Camera Viewfinder Autofocus Cursor (Only rendered on desktop devices with a physical mouse/trackpad) */}
+      {isFinePointer && (
+        <motion.div
+          style={{
+            position: 'fixed',
+            left: globalMousePos.x,
+            top: globalMousePos.y,
+            pointerEvents: 'none',
+            zIndex: 99999,
+            transform: 'translate(-50%, -50%)',
+          }}
+          className="hidden md:flex items-center justify-center pointer-events-none"
+        >
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Center pinpoint */}
+            <circle cx="16" cy="16" r="2" fill={isHoveringClickable ? "#8e1616" : "#ffffff"} />
+            
+            {/* Viewfinder brackets layer (contracts and rotates on active hover) */}
+            <motion.g
+              animate={{
+                scale: isHoveringClickable ? 0.75 : 1,
+                rotate: isHoveringClickable ? 90 : 0,
+              }}
+              transition={{ type: 'spring', stiffness: 350, damping: 20 }}
+              style={{ originX: 0.5, originY: 0.5, transformOrigin: 'center' }}
+            >
+              {/* Top-Left Corner */}
+              <path d="M 6 12 V 6 H 12" stroke={isHoveringClickable ? "#8e1616" : "#ffffff"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              {/* Top-Right Corner */}
+              <path d="M 26 12 V 6 H 20" stroke={isHoveringClickable ? "#8e1616" : "#ffffff"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              {/* Bottom-Left Corner */}
+              <path d="M 6 20 V 26 H 12" stroke={isHoveringClickable ? "#8e1616" : "#ffffff"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              {/* Bottom-Right Corner */}
+              <path d="M 26 20 V 26 H 20" stroke={isHoveringClickable ? "#8e1616" : "#ffffff"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </motion.g>
+          </svg>
+        </motion.div>
+      )}
 
     </div>
   );
