@@ -475,14 +475,16 @@ export default function Photobooth() {
           );
         }
 
-        // Downscale GIF dimensions (approx 0.5) to keep export performance instantaneous and light files
-        const scale = 0.55;
+        // Scale GIF dimensions (0.70) to ensure high-definition QR code clarity and fast compile
+        const scale = 0.70;
         const gifFrames = frames.map(f => {
           const c = document.createElement('canvas');
-          c.width = f.width * scale;
-          c.height = f.height * scale;
+          c.width = Math.round(f.width * scale);
+          c.height = Math.round(f.height * scale);
           const gc = c.getContext('2d');
           if (gc) {
+            gc.imageSmoothingEnabled = true;
+            gc.imageSmoothingQuality = 'high';
             gc.drawImage(f, 0, 0, c.width, c.height);
           }
           return c;

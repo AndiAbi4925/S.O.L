@@ -611,21 +611,29 @@ export function renderStrip(
     qr.make();
 
     const moduleCount = qr.getModuleCount();
-    const qrSize = 56; // px size of the QR code block
+    const qrSize = 64; // Enhanced size for 100% scannability across GIF, PNG, and JPG
     const cellSize = qrSize / moduleCount;
 
     // Position: bottom-right corner of the strip
-    const qrX = layout.id === 'filmstrip' ? layout.width - qrSize - 90 : layout.width - qrSize - 40;
+    const qrX = layout.id === 'filmstrip' ? layout.width - qrSize - 85 : layout.width - qrSize - 35;
     const qrY = layout.datePos.y - qrSize + 6;
 
-    // Draw QR modules (No background, match stamp color)
-    ctx.fillStyle = theme.stampColor;
+    // 1. Draw solid white quiet-zone background box to guarantee high contrast for camera scanners
+    const pad = 5;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(qrX - pad, qrY - pad, qrSize + pad * 2, qrSize + pad * 2);
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(qrX - pad, qrY - pad, qrSize + pad * 2, qrSize + pad * 2);
+
+    // 2. Draw crisp black QR modules
+    ctx.fillStyle = '#000000';
     for (let row = 0; row < moduleCount; row++) {
       for (let col = 0; col < moduleCount; col++) {
         if (qr.isDark(row, col)) {
           ctx.fillRect(
-            qrX + col * cellSize,
-            qrY + row * cellSize,
+            Math.round(qrX + col * cellSize),
+            Math.round(qrY + row * cellSize),
             Math.ceil(cellSize),
             Math.ceil(cellSize)
           );
@@ -634,7 +642,7 @@ export function renderStrip(
     }
 
     // Draw Brand signature on physical paper bottom margin, to the left of the QR
-    const textX = qrX - 15;
+    const textX = qrX - 16;
     const textY = layout.datePos.y;
     ctx.font = 'bold 16px "Inter", sans-serif';
     ctx.fillStyle = theme.fontHex;
